@@ -27,8 +27,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:iconGravity="end"
-            android:text="Settings"
-            app:icon="@drawable/ic_settings"/>
+            android:text="Logout"
+            app:icon="@drawable/ic_logout"/>
         <ImageView
             android:id="@+id/logo"
             android:background="@drawable/circle_button"
