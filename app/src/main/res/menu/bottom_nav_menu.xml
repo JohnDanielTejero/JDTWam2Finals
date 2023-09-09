@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Dashboard"
+        android:tooltipText="Dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:id="@+id/dashboard_option" />
+    <item android:title="Add Income"
+        android:tooltipText="Add Income"
+        android:icon="@drawable/ic_earnings"
+        android:id="@+id/income_option"/>
+    <item android:title="Expenditure"
+        android:tooltipText="Expenditure"
+        android:icon="@drawable/ic_expenses"
+        android:id="@+id/expenses_option"/>
+    <item android:title="Transactions"
+        android:tooltipText="Transactions"
+        android:icon="@drawable/ic_month_expenses_overview"
+        android:id="@+id/transaction_option"/>
+</menu>

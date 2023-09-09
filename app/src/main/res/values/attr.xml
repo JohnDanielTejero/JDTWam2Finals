@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name= "formBackground" format="string"/>
+    <attr name = "formShadow" format="string"/>
+    <attr name = "customTitleColor" format="string"/>
+    <attr name = "customTitleColorAlt" format="string"/>
+</resources>

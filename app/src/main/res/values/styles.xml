@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="boxStrokeColor">#00000000</item> <!-- Transparent background -->
+        <item name="boxStrokeWidth">2dp</item> <!-- Underline width -->
+        <item name="boxStrokeWidthFocused">2dp</item> <!-- Underline width when focused -->
+        <item name="boxStrokeErrorColor">#FF0000</item> <!-- Underline color when in error state -->
+    </style>
+
+</resources>

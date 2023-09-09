@@ -1,0 +1,20 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.JDTWam2Finals" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">#2E2D2D</item>
+        <item name="colorPrimaryVariant">#4A4A4A</item>
+        <item name="colorOnPrimary">#C3C0C0</item>
+
+        <item name="colorSecondary">#A60B86</item>
+        <item name="colorSecondaryVariant">#CA44AE</item>
+        <item name="colorOnSecondary">#cc80ba</item>
+
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <!-- Customize your theme here. -->
+        <item name="formBackground">?colorPrimaryVariant</item>
+        <item name="formShadow">?colorPrimary</item>
+        <item name="customTitleColor">?colorOnPrimary</item>
+        <item name="customTitleColorAlt">?colorPrimary</item>
+    </style>
+</resources>
