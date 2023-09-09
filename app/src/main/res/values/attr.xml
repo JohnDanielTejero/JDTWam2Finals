@@ -4,4 +4,5 @@
     <attr name = "formShadow" format="string"/>
     <attr name = "customTitleColor" format="string"/>
     <attr name = "customTitleColorAlt" format="string"/>
+    <attr name = "customRippleColor" format="string"/>
 </resources>

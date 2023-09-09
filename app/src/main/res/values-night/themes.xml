@@ -16,5 +16,6 @@
         <item name="formShadow">?colorPrimary</item>
         <item name="customTitleColor">?colorOnPrimary</item>
         <item name="customTitleColorAlt">?colorPrimary</item>
+        <item name="customRippleColor">?colorPrimary</item>
     </style>
 </resources>
