@@ -14,12 +14,15 @@
         android:hardwareAccelerated="true"
         tools:targetApi="31">
         <activity
+            android:screenOrientation="sensorPortrait"
             android:name=".UnauthActivity"
             android:exported="false"/>
         <activity
+            android:screenOrientation="sensorPortrait"
             android:name=".AuthActivity"
             android:exported="false" />
         <activity
+            android:screenOrientation="sensorPortrait"
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
