@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.JDTWam2Finals" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">#2E2D2D</item>
+        <item name="colorPrimary">#050505</item>
         <item name="colorPrimaryVariant">#4A4A4A</item>
         <item name="colorOnPrimary">#C3C0C0</item>
 
