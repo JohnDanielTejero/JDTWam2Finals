@@ -1,15 +1,29 @@
 package com.example.jdtwam2finals.fragments;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.jdtwam2finals.R;
+import com.example.jdtwam2finals.dao.DbCon;
+import com.example.jdtwam2finals.dao.QueryBuilder;
+import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.FragmentRegisterBinding;
+import com.example.jdtwam2finals.dto.User;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -19,6 +33,10 @@ import com.example.jdtwam2finals.databinding.FragmentRegisterBinding;
 public class RegisterFragment extends Fragment {
 
     private FragmentRegisterBinding b;
+    private DbCon dbCon;
+    private Context context;
+    private TextInputEditText username, password;
+    private MaterialButton submit;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -57,6 +75,7 @@ public class RegisterFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        context = requireActivity();
     }
 
     @Override
@@ -65,5 +84,56 @@ public class RegisterFragment extends Fragment {
         b = FragmentRegisterBinding.inflate(inflater, container, false);
         // Inflate the layout for this fragment
         return b.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        dbCon = DbCon.getInstance(context);
+        submit = b.submitButton;
+        username = b.registerUsername;
+        password = b.registerPassword;
+
+        submit.setOnClickListener(v -> {
+            boolean submittable = true;
+            if (username.getText().toString().isEmpty()){
+                username.setError("Username is required!");
+                submittable = false;
+            }
+            if (password.getText().toString().isEmpty()){
+                password.setError("Password is required!");
+                submittable = false;
+            }
+
+            if (submittable) {
+
+                User createUser = new User(username.getText().toString(), password.getText().toString());
+                UserTable userTable = new UserTable();
+                QueryBuilder<User> query = userTable.database(dbCon.getReadableDatabase());
+                Cursor cursor = query
+                        .find()
+                        .where("username","=", username.getText().toString())
+                        .exec();
+
+                if (cursor != null && cursor.getCount() > 0){
+                    username.setError("Username is duplicated!");
+                    cursor.close();
+                }else{
+                    query = userTable.database(dbCon.getWritableDatabase());
+                    long id = query.insert(createUser);
+                    if (id != -1){
+                        Log.d("register_user", "User successfully inserted");
+                        LoginFragment loginFragment = new LoginFragment();
+                        FragmentManager fm = requireActivity().getSupportFragmentManager();
+                        FragmentTransaction transaction = fm.beginTransaction();
+                        transaction.replace(R.id.form_fragment, loginFragment);
+                        transaction.addToBackStack(null); // Add the transaction to the back stack
+                        transaction.commit();
+                    }
+                }
+            }else {
+                Toast.makeText(requireActivity(),"Please fill in the fields.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

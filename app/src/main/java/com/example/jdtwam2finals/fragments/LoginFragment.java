@@ -1,15 +1,30 @@
 package com.example.jdtwam2finals.fragments;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.jdtwam2finals.MainActivity;
 import com.example.jdtwam2finals.R;
+import com.example.jdtwam2finals.dao.DbCon;
+import com.example.jdtwam2finals.dao.QueryBuilder;
+import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.FragmentLoginBinding;
+import com.example.jdtwam2finals.dto.User;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -19,6 +34,11 @@ import com.example.jdtwam2finals.databinding.FragmentLoginBinding;
 public class LoginFragment extends Fragment {
 
     private FragmentLoginBinding b;
+    private Context context;
+    private DbCon dbCon;
+    private MaterialButton submitButton;
+    private TextInputEditText username, password;
+    private SharedPreferences sp;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -58,6 +78,7 @@ public class LoginFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        context = requireActivity();
     }
 
     @Override
@@ -68,5 +89,61 @@ public class LoginFragment extends Fragment {
         return (View) b.getRoot();
     }
 
+    @SuppressLint("Range")
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
+        dbCon = DbCon.getInstance(context);
+        username = b.loginUsername;
+        password = b.loginPassword;
+        submitButton = b.submitButton;
+
+        submitButton.setOnClickListener(v -> {
+            boolean submittable = true;
+            if (username.getText().toString().isEmpty()){
+                username.setError("Username is required!");
+                submittable = false;
+            }
+            if (password.getText().toString().isEmpty()){
+                password.setError("Password is required!");
+                submittable = false;
+            }
+
+            if (submittable) {
+                UserTable userTable = new UserTable();
+                User checkUser = new User();
+                QueryBuilder<User> query = userTable.database(dbCon.getReadableDatabase());
+                Cursor cursor = query
+                        .find()
+                        .where("username", "=", username.getText().toString())
+                        .exec();
+                if (cursor != null && cursor.getCount() > 0){
+                    if (cursor.moveToFirst()){
+                        checkUser.setUserId((int) cursor.getLong(cursor.getColumnIndex(UserTable.COLUMN_USER_ID)));
+                        checkUser.setUsername(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN_USERNAME)));
+                        checkUser.setPassword(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN_PASSWORD)));
+                    }
+                    cursor.close();
+                    dbCon.close();
+                }else{
+                    username.setError("User not found!");
+                    return;
+                }
+
+                if (!password.getText().toString().equals(checkUser.getPassword())){
+                    password.setError("Incorrect Password!");
+                    return;
+                }
+
+                sp = context.getSharedPreferences("login", Context.MODE_PRIVATE);
+                SharedPreferences.Editor Ed=sp.edit();
+                Ed.putInt("user", checkUser.getUserId());
+                Ed.commit();
+                Intent i = new Intent(context, MainActivity.class);
+                Log.d("login", "successfully logged user");
+                startActivity(i);
+            }
+        });
+    }
 }
