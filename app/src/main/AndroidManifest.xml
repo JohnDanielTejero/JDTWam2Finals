@@ -16,14 +16,17 @@
         <activity
             android:screenOrientation="sensorPortrait"
             android:name=".UnauthActivity"
+            android:noHistory="true"
             android:exported="false"/>
         <activity
             android:screenOrientation="sensorPortrait"
+            android:noHistory="true"
             android:name=".AuthActivity"
             android:exported="false" />
         <activity
             android:screenOrientation="sensorPortrait"
             android:name=".MainActivity"
+            android:noHistory="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
