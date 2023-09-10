@@ -22,6 +22,7 @@ import com.example.jdtwam2finals.dao.QueryBuilder;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.FragmentRegisterBinding;
 import com.example.jdtwam2finals.dto.User;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -126,6 +127,7 @@ public class RegisterFragment extends Fragment {
                         LoginFragment loginFragment = new LoginFragment();
                         FragmentManager fm = requireActivity().getSupportFragmentManager();
                         FragmentTransaction transaction = fm.beginTransaction();
+                        ((BottomNavigationView) requireActivity().findViewById(R.id.select_form)).setSelectedItemId(R.id.go_to_login);
                         transaction.replace(R.id.form_fragment, loginFragment);
                         transaction.addToBackStack(null); // Add the transaction to the back stack
                         transaction.commit();

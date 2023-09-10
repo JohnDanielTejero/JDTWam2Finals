@@ -8,20 +8,29 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 
 import com.example.jdtwam2finals.databinding.ActivityUnauthBinding;
+import com.example.jdtwam2finals.fragments.DashboardFragment;
+import com.example.jdtwam2finals.fragments.ExpenseFragment;
+import com.example.jdtwam2finals.fragments.IncomeFragment;
 import com.example.jdtwam2finals.fragments.LoginFragment;
 import com.example.jdtwam2finals.fragments.RegisterFragment;
+import com.example.jdtwam2finals.fragments.TransactionFragment;
 
 public class UnauthActivity extends AppCompatActivity {
 
     private ActivityUnauthBinding b;
+    private int selectedFragmentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         b = ActivityUnauthBinding.inflate(getLayoutInflater());
         setContentView(b.getRoot());
+        if (savedInstanceState != null) {
+            selectedFragmentId = savedInstanceState.getInt("selectedFragmentId");
+            b.selectForm.setSelectedItemId(selectedFragmentId);
+        }
 
-        replaceFragment(new LoginFragment());
+        initializeFragment(selectedFragmentId);
 
         b.selectForm.setOnItemSelectedListener(item -> {
             if (item.getItemId() == R.id.go_to_login){
@@ -34,7 +43,11 @@ public class UnauthActivity extends AppCompatActivity {
             return false;
         });
 
-
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("selectedFragmentId", selectedFragmentId);
     }
 
     private void replaceFragment (Fragment f){
@@ -43,4 +56,16 @@ public class UnauthActivity extends AppCompatActivity {
         ft.replace(b.formFragment.getId(), f);
         ft.commit();
     }
+    private void initializeFragment(int fragmentId) {
+        Fragment fragment = null;
+        if (fragmentId == R.id.go_to_login) {
+            fragment = new LoginFragment();
+        } else if (fragmentId == R.id.go_to_register) {
+            fragment = new RegisterFragment();
+        }
+        if (fragment != null) {
+            replaceFragment(fragment);
+        }
+    }
+
 }
