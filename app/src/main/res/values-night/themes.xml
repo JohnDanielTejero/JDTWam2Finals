@@ -3,11 +3,11 @@
     <style name="Theme.JDTWam2Finals" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">#050505</item>
-        <item name="colorPrimaryVariant">#4A4A4A</item>
+        <item name="colorPrimaryVariant">#2C2C2C</item>
         <item name="colorOnPrimary">#C3C0C0</item>
 
         <item name="colorSecondary">#A60B86</item>
-        <item name="colorSecondaryVariant">#CA44AE</item>
+        <item name="colorSecondaryVariant">#272626</item>
         <item name="colorOnSecondary">#cc80ba</item>
 
         <item name="android:statusBarColor">?attr/colorPrimary</item>
@@ -17,5 +17,6 @@
         <item name="customTitleColor">?colorOnPrimary</item>
         <item name="customTitleColorAlt">?colorPrimary</item>
         <item name="customRippleColor">?colorPrimary</item>
+        <item name="customBackdropGradient">?colorSecondaryVariant</item>
     </style>
 </resources>

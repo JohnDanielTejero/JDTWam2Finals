@@ -5,4 +5,5 @@
     <attr name = "customTitleColor" format="string"/>
     <attr name = "customTitleColorAlt" format="string"/>
     <attr name = "customRippleColor" format="string"/>
+    <attr name="customBackdropGradient" format="string"/>
 </resources>
