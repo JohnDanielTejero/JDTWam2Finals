@@ -111,18 +111,26 @@ public class LoginFragment extends Fragment {
             }
 
             if (submittable) {
-                UserTable userTable = new UserTable();
+                QueryBuilder<User> query = new UserTable(dbCon.getReadableDatabase());
                 User checkUser = new User();
-                QueryBuilder<User> query = userTable.database(dbCon.getReadableDatabase());
+                //QueryBuilder<User> query = userTable.database(dbCon.getReadableDatabase());
                 Cursor cursor = query
                         .find()
                         .where("username", "=", username.getText().toString())
                         .exec();
                 if (cursor != null && cursor.getCount() > 0){
                     if (cursor.moveToFirst()){
-                        checkUser.setUserId((int) cursor.getLong(cursor.getColumnIndex(UserTable.COLUMN_USER_ID)));
-                        checkUser.setUsername(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN_USERNAME)));
-                        checkUser.setPassword(cursor.getString(cursor.getColumnIndex(UserTable.COLUMN_PASSWORD)));
+                        checkUser
+                                .setUserId((int) cursor
+                                        .getLong(cursor.getColumnIndex(UserTable.COLUMN_USER_ID)));
+                        checkUser
+                                .setUsername(cursor
+                                        .getString(cursor
+                                                .getColumnIndex(UserTable.COLUMN_USERNAME)));
+                        checkUser
+                                .setPassword(cursor
+                                        .getString(cursor
+                                                .getColumnIndex(UserTable.COLUMN_PASSWORD)));
                     }
                     cursor.close();
                     dbCon.close();

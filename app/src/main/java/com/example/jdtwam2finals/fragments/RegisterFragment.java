@@ -109,8 +109,7 @@ public class RegisterFragment extends Fragment {
             if (submittable) {
 
                 User createUser = new User(username.getText().toString(), password.getText().toString());
-                UserTable userTable = new UserTable();
-                QueryBuilder<User> query = userTable.database(dbCon.getReadableDatabase());
+                QueryBuilder<User> query = new UserTable(dbCon.getReadableDatabase());
                 Cursor cursor = query
                         .find()
                         .where("username","=", username.getText().toString())
@@ -120,14 +119,16 @@ public class RegisterFragment extends Fragment {
                     username.setError("Username is duplicated!");
                     cursor.close();
                 }else{
-                    query = userTable.database(dbCon.getWritableDatabase());
+                    query.database(dbCon.getWritableDatabase());
                     long id = query.insert(createUser);
                     if (id != -1){
                         Log.d("register_user", "User successfully inserted");
                         LoginFragment loginFragment = new LoginFragment();
                         FragmentManager fm = requireActivity().getSupportFragmentManager();
                         FragmentTransaction transaction = fm.beginTransaction();
-                        ((BottomNavigationView) requireActivity().findViewById(R.id.select_form)).setSelectedItemId(R.id.go_to_login);
+                        ((BottomNavigationView) requireActivity()
+                                .findViewById(R.id.select_form))
+                                .setSelectedItemId(R.id.go_to_login);
                         transaction.replace(R.id.form_fragment, loginFragment);
                         transaction.addToBackStack(null); // Add the transaction to the back stack
                         transaction.commit();

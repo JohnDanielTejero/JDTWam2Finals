@@ -19,10 +19,19 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     protected String selectedTable;
     protected String operation;
     private Boolean isCount = false;
+
+    public QueryBuilderImpl(SQLiteDatabase db) {
+        this.database(db);
+    }
+
     private String orderBy = "1";
     private boolean orderByAsc = false;
     private static final String WHERE_CLAUSE = " WHERE ";
     private static final String SELECT_ALL_COLUMN = " * ";
+
+    public QueryBuilderImpl() {
+
+    }
 
     @Override
     public QueryBuilder<T> database(SQLiteDatabase db) {

@@ -17,6 +17,13 @@ public class UserTable extends QueryBuilderImpl<User> {
 
     public static final String DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
+    public UserTable() {
+        super();
+    }
+    public UserTable(SQLiteDatabase db) {
+        super(db);
+    }
+
     @Override
     public QueryBuilder<User> database(SQLiteDatabase db) {
         super.selectedTable = TABLE_NAME;
