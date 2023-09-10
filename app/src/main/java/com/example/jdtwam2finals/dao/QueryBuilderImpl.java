@@ -4,6 +4,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.example.jdtwam2finals.dto.Transaction;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,6 +20,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     protected Map<String, String> table_joins = new HashMap<>();
     protected String selectedTable;
     protected String operation;
+    protected Integer limitBy;
     private Boolean isCount = false;
 
     public QueryBuilderImpl(SQLiteDatabase db) {
@@ -28,6 +31,8 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     private boolean orderByAsc = false;
     private static final String WHERE_CLAUSE = " WHERE ";
     private static final String SELECT_ALL_COLUMN = " * ";
+    private static final String LIMIT_CLAUSE = " LIMIT ";
+    private static final String FROM_CLAUSE = " FROM ";
 
     public QueryBuilderImpl() {
 
@@ -60,6 +65,12 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     }
 
     @Override
+    public QueryBuilder<T> limitBy(int num) {
+        this.limitBy = num;
+        return this;
+    }
+
+    @Override
     public QueryBuilder<T> relation(String foreignTableName, String foreignKey, String refTableName, String refKey) {
         this.table_joins.put(foreignTableName + "." + foreignKey, refTableName + "." + refKey);
         return this;
@@ -72,6 +83,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
         this.conditions.put(sb.toString(), identifier);
         return this;
     }
+
     @Override
     public QueryBuilder<T> count() {
         this.isCount = true;
@@ -86,7 +98,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
 
             if (this.operation.equals("SELECT")){
                 query.append(SELECT_ALL_COLUMN);
-                query.append("FROM " + this.selectedTable);
+                query.append(FROM_CLAUSE + this.selectedTable);
                 if(this.table_joins.size() != 0){
                     String joins = formatTableJoins();
                     query.append(joins);
@@ -104,8 +116,13 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 query.append(" ORDER BY ");
                 query.append(orderBy);
                 query.append((orderByAsc == true ? " ASC " : " DESC "));
+
+                if (limitBy != null) {
+                    query.append(LIMIT_CLAUSE + limitBy);
+                }
+
             } else if (this.operation.equals("DELETE")) {
-                query.append("FROM " + this.selectedTable);
+                query.append(FROM_CLAUSE + this.selectedTable);
                 if (this.conditions.size() != 0){
                     String[] formatCondition = formatWhereCondition().split(":");
                     String[] conditionArray = formatCondition[1].split(",");
