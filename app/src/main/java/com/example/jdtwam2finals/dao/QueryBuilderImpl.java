@@ -54,6 +54,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
         this.operation = "SELECT";
         return this;
     }
+
     @Override
     public QueryBuilder<T> orderBy(int i) {
         if (i == ASC){
@@ -89,6 +90,34 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
         this.isCount = true;
         return this;
     }
+
+    @Override
+    public void execDelete(){
+        Log.d("sqlQuery", "in exec");
+        try{
+            StringBuilder query = new StringBuilder(this.operation);
+            ArrayList<String> condition_identifier = null;
+
+            if (this.operation.equals("DELETE")) {
+                query.append(FROM_CLAUSE + this.selectedTable);
+                if (this.conditions.size() != 0){
+                    String[] formatCondition = formatWhereCondition().split(":");
+                    String[] conditionArray = formatCondition[1].split(",");
+                    condition_identifier = new ArrayList<>(Arrays.asList(conditionArray));
+                    query.append(formatCondition[0]);
+                }
+                Log.d("sqlQuery", query.toString());
+                db.execSQL(query.toString(), condition_identifier.toArray(new String[condition_identifier.size()]));
+            }else{
+                throw new Exception("Query cannot be processed");
+            }
+        }catch (Exception e){
+            Log.d("execution_db", e.getMessage());
+        }finally {
+            db.close();
+        }
+    }
+
     @Override
     public Cursor exec() {
         Log.d("sqlQuery", "in exec");
@@ -121,15 +150,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                     query.append(LIMIT_CLAUSE + limitBy);
                 }
 
-            } else if (this.operation.equals("DELETE")) {
-                query.append(FROM_CLAUSE + this.selectedTable);
-                if (this.conditions.size() != 0){
-                    String[] formatCondition = formatWhereCondition().split(":");
-                    String[] conditionArray = formatCondition[1].split(",");
-                    condition_identifier = new ArrayList<>(Arrays.asList(conditionArray));
-                    query.append(formatCondition[0]);
-                }
-            } else{
+            }else{
                 throw new Exception("Query cannot be processed");
             }
 
