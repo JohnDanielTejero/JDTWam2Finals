@@ -18,5 +18,6 @@ public interface QueryBuilder<T> {
     public QueryBuilder<T> limitBy(int num);
     public QueryBuilder<T> delete();
     public Cursor exec();
+    public void execDelete();
 
 }
