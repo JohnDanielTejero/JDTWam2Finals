@@ -117,6 +117,7 @@ public class LoginFragment extends Fragment {
                 Cursor cursor = query
                         .find()
                         .where("username", "=", username.getText().toString())
+                        .limitBy(1)
                         .exec();
                 if (cursor != null && cursor.getCount() > 0){
                     if (cursor.moveToFirst()){
