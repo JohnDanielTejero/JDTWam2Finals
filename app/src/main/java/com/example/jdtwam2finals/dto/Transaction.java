@@ -4,17 +4,45 @@ import java.util.Date;
 
 public class Transaction {
 
+    private Integer transactionId;
     private String type;
     private Date date;
+    private String month;
     private Integer userId;
     private Expense expense;
     private Income income;
 
     public Transaction() {}
-    public Transaction(String type, Date date, Integer userId) {
+    public Transaction(Integer id, String type, Date date, String month, Integer userId) {
+        transactionId = id;
         this.type = type;
         this.date = date;
         this.userId = userId;
+        this.month = month;
+    }
+
+    public Transaction(String type, Date date, String currentMonth, int userId) {
+        this.type = type;
+        this.date = date;
+        this.userId = userId;
+        this.month = currentMonth;
+    }
+
+
+    public Integer getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(Integer transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getMonth() {
+        return month;
+    }
+
+    public void setMonth(String month) {
+        this.month = month;
     }
 
     public Expense getExpense() {

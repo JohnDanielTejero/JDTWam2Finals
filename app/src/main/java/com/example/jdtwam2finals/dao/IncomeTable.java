@@ -4,8 +4,10 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.jdtwam2finals.dto.Income;
+import com.example.jdtwam2finals.utils.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilderImpl;
 
-public class IncomeTable extends QueryBuilderImpl<Income>{
+public class IncomeTable extends QueryBuilderImpl<Income> {
     public static final String TABLE_NAME = "income";
     public static final String COLUMN_INCOME_ID = "income_id";
     public static final String COLUMN_AMOUNT = "amount";
@@ -27,7 +29,11 @@ public class IncomeTable extends QueryBuilderImpl<Income>{
 
     public IncomeTable() {
     }
-
+    @Override
+    public QueryBuilder<Income> database(SQLiteDatabase db) {
+        super.selectedTable = TABLE_NAME;
+        return super.database(db);
+    }
     @Override
     public QueryBuilder<Income> one(Integer id) {
         return this.where(COLUMN_INCOME_ID, "=", id.toString());

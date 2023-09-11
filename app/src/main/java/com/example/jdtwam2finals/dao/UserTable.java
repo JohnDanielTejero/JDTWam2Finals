@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.jdtwam2finals.dto.User;
+import com.example.jdtwam2finals.utils.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilderImpl;
+
 public class UserTable extends QueryBuilderImpl<User> {
     public static final String TABLE_NAME = "user";
     public static final String COLUMN_USER_ID = "user_id";

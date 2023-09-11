@@ -17,9 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.jdtwam2finals.MainActivity;
-import com.example.jdtwam2finals.R;
 import com.example.jdtwam2finals.dao.DbCon;
-import com.example.jdtwam2finals.dao.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilder;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.FragmentLoginBinding;
 import com.example.jdtwam2finals.dto.User;
@@ -135,6 +134,7 @@ public class LoginFragment extends Fragment {
                     }
                     cursor.close();
                     dbCon.close();
+                    Log.d("login", checkUser.getPassword());
                 }else{
                     username.setError("User not found!");
                     return;

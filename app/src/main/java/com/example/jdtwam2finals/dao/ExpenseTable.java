@@ -4,9 +4,10 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.jdtwam2finals.dto.Expense;
-import com.example.jdtwam2finals.dto.Transaction;
+import com.example.jdtwam2finals.utils.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilderImpl;
 
-public class ExpenseTable extends QueryBuilderImpl<Expense>{
+public class ExpenseTable extends QueryBuilderImpl<Expense> {
     public static final String TABLE_NAME = "expense";
     public static final String COLUMN_EXPENSE_ID = "expense_id";
     public static final String COLUMN_AMOUNT = "amount";
@@ -26,6 +27,11 @@ public class ExpenseTable extends QueryBuilderImpl<Expense>{
 
     public ExpenseTable(SQLiteDatabase db) {
         super(db);
+    }
+    @Override
+    public QueryBuilder<Expense> database(SQLiteDatabase db) {
+        super.selectedTable = TABLE_NAME;
+        return super.database(db);
     }
 
     public ExpenseTable() {}

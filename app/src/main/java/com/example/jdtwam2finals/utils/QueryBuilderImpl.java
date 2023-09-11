@@ -1,10 +1,10 @@
-package com.example.jdtwam2finals.dao;
+package com.example.jdtwam2finals.utils;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.example.jdtwam2finals.dto.Transaction;
+import com.example.jdtwam2finals.utils.QueryBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,13 +15,13 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     protected SQLiteDatabase db;
     public static final Integer ASC = 1;
     public static final Integer DESC = 0;
-
     protected Map<String, String> conditions = new HashMap<>();
     protected Map<String, String> table_joins = new HashMap<>();
     protected String selectedTable;
     protected String operation;
     protected Integer limitBy;
     private Boolean isCount = false;
+    private String sumOfColumn = null;
 
     public QueryBuilderImpl(SQLiteDatabase db) {
         this.database(db);
@@ -33,6 +33,8 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     private static final String SELECT_ALL_COLUMN = " * ";
     private static final String LIMIT_CLAUSE = " LIMIT ";
     private static final String FROM_CLAUSE = " FROM ";
+    private static final String COUNT_CLAUSE = " COUNT";
+    private static final String SUM_CLAUSE = " SUM";
 
     public QueryBuilderImpl() {
 
@@ -113,9 +115,13 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
             }
         }catch (Exception e){
             Log.d("execution_db", e.getMessage());
-        }finally {
-            db.close();
         }
+    }
+
+    @Override
+    public QueryBuilder<T> sum(String columnToSum) {
+        this.sumOfColumn = columnToSum;
+        return this;
     }
 
     @Override
@@ -128,9 +134,21 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
             if (this.operation.equals("SELECT")){
                 query.append(SELECT_ALL_COLUMN);
                 query.append(FROM_CLAUSE + this.selectedTable);
+
+                if (isCount) {
+                    query = new StringBuilder(this.operation + COUNT_CLAUSE + "(" + SELECT_ALL_COLUMN + ")");
+                    query.append(FROM_CLAUSE + this.selectedTable);
+                }
+
+                if (sumOfColumn != null){
+                    query = new StringBuilder(this.operation + SUM_CLAUSE + "(" + sumOfColumn + ")");
+                    query.append(FROM_CLAUSE + this.selectedTable);
+                    Log.d("sqlQuery", query.toString());
+                }
                 if(this.table_joins.size() != 0){
                     String joins = formatTableJoins();
                     query.append(joins);
+                    Log.d("sqlQuery", query.toString());
                 }
 
                 if (this.conditions.size() != 0){
@@ -153,7 +171,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
             }else{
                 throw new Exception("Query cannot be processed");
             }
-
+            Log.d("sqlQuery", query.toString());
             return this.db.rawQuery(
                     query.toString(),
                     condition_identifier != null ? condition_identifier
@@ -166,26 +184,40 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
         return null;
     }
 
+    /**
+     * Private method of class to format String SQL for JOINS
+     *
+     * @return String
+     */
     private String formatTableJoins(){
         if(this.table_joins.size() != 0){
+            Log.d("sqlQuery", "in table joins");
+
             StringBuilder joins = new StringBuilder();
 
             for (Map.Entry<String, String> entry : table_joins.entrySet()) {
                 joins.append(" INNER JOIN ");
                 String foreignKey = entry.getKey();
                 String referenceKey = entry.getValue();
-                String foreignTable = foreignKey.split(".")[0];
+                String foreignTable = foreignKey.split("\\.")[0];
                 joins.append(foreignTable);
                 joins.append(" ON ");
                 joins.append(foreignKey + " = " + referenceKey);
             }
+            Log.d("sqlQuery", joins.toString());
             return joins.toString();
         }
         return null;
     }
 
+    /**
+     * Private method of class to format WHERE conditions
+     *
+     * @return String
+     */
     private String formatWhereCondition(){
         if (this.conditions.size() != 0) {
+
             String extractedConditions = WHERE_CLAUSE;
             String extractedIdentifiers = "";
 

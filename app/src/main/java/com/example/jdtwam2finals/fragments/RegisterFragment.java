@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import com.example.jdtwam2finals.R;
 import com.example.jdtwam2finals.dao.DbCon;
-import com.example.jdtwam2finals.dao.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilder;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.FragmentRegisterBinding;
 import com.example.jdtwam2finals.dto.User;
@@ -108,33 +108,39 @@ public class RegisterFragment extends Fragment {
 
             if (submittable) {
 
-                User createUser = new User(username.getText().toString(), password.getText().toString());
-                QueryBuilder<User> query = new UserTable(dbCon.getReadableDatabase());
-                Cursor cursor = query
-                        .find()
-                        .where("username","=", username.getText().toString())
-                        .limitBy(1)
-                        .exec();
+                try{
+                    User createUser = new User(username.getText().toString(), password.getText().toString());
+                    QueryBuilder<User> query = new UserTable(dbCon.getReadableDatabase());
+                    Cursor cursor = query
+                            .find()
+                            .where("username","=", username.getText().toString())
+                            .limitBy(1)
+                            .exec();
 
-                if (cursor != null && cursor.getCount() > 0){
-                    username.setError("Username is duplicated!");
-                    cursor.close();
-                }else{
-                    query.database(dbCon.getWritableDatabase());
-                    long id = query.insert(createUser);
-                    if (id != -1){
-                        Log.d("register_user", "User successfully inserted");
-                        LoginFragment loginFragment = new LoginFragment();
-                        FragmentManager fm = requireActivity().getSupportFragmentManager();
-                        FragmentTransaction transaction = fm.beginTransaction();
-                        ((BottomNavigationView) requireActivity()
-                                .findViewById(R.id.select_form))
-                                .setSelectedItemId(R.id.go_to_login);
-                        transaction.replace(R.id.form_fragment, loginFragment);
-                        transaction.addToBackStack(null); // Add the transaction to the back stack
-                        transaction.commit();
+                    if (cursor != null && cursor.getCount() > 0){
+                        username.setError("Username is duplicated!");
+                        cursor.close();
+                    }else{
+                        query.database(dbCon.getWritableDatabase());
+                        long id = query.insert(createUser);
+                        if (id != -1){
+                            Log.d("register_user", "User successfully inserted");
+                            LoginFragment loginFragment = new LoginFragment();
+                            FragmentManager fm = requireActivity().getSupportFragmentManager();
+                            FragmentTransaction transaction = fm.beginTransaction();
+                            Toast.makeText(context, "Registered Successfully!", Toast.LENGTH_SHORT).show();
+                            ((BottomNavigationView) requireActivity()
+                                    .findViewById(R.id.select_form))
+                                    .setSelectedItemId(R.id.go_to_login);
+                            transaction.replace(R.id.form_fragment, loginFragment);
+                            transaction.addToBackStack(null); // Add the transaction to the back stack
+                            transaction.commit();
+                        }
                     }
+                }catch (Exception e){
+
                 }
+
             }else {
                 Toast.makeText(requireActivity(),"Please fill in the fields.", Toast.LENGTH_SHORT).show();
             }

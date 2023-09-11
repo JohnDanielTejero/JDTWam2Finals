@@ -15,16 +15,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.jdtwam2finals.R;
 import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.ExpenseTable;
-import com.example.jdtwam2finals.dao.IncomeTable;
-import com.example.jdtwam2finals.dao.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilder;
 import com.example.jdtwam2finals.dao.TransactionTable;
 import com.example.jdtwam2finals.databinding.FragmentExpenseBinding;
 import com.example.jdtwam2finals.dto.Expense;
-import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
+import com.example.jdtwam2finals.utils.MonthSetter;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.Date;
@@ -127,7 +125,7 @@ public class ExpenseFragment extends Fragment {
 
                 QueryBuilder<Transaction> transactionBuilder = new TransactionTable(dbCon.getWritableDatabase());
                 int userId = sp.getInt("user", -1);
-                long transactionId = transactionBuilder.insert(new Transaction("Income", new Date(), (int) userId));
+                long transactionId = transactionBuilder.insert(new Transaction("Expense", new Date(), MonthSetter.currentMonth(), userId));
                 if (transactionId != -1){
                     Log.d("insertTransaction", "Transaction successfully inserted: " + transactionId);
                     QueryBuilder<Expense> expenseQueryBuilder = new ExpenseTable(dbCon.getWritableDatabase());
@@ -145,7 +143,12 @@ public class ExpenseFragment extends Fragment {
                         note.setText("");
                         category.setText("");
                     }else{
-                        Log.d("insertTransaction", "Expense did not insert, deleting transaction: " + transactionId);
+                        Log.d("insertTransaction",
+                                "Expense did not insert, deleting transaction: " + transactionId
+                        );
+                        transactionBuilder.delete()
+                                .one((int) transactionId)
+                                .execDelete();
                     }
                 }
 

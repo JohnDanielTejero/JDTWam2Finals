@@ -36,6 +36,7 @@
                     android:layout_height="wrap_content"
                     android:text="Total Balance"/>
                 <TextView
+                    android:id="@+id/total_balance_display"
                     android:textColor="?colorOnPrimary"
                     android:layout_marginHorizontal="5sp"
                     android:textStyle="bold"
@@ -78,6 +79,7 @@
                             android:layout_height="wrap_content"
                             android:text="Total Income"/>
                         <TextView
+                            android:id="@+id/total_income_display"
                             android:textStyle="bold"
                             android:textColor="?colorOnPrimary"
                             android:textSize="20sp"
@@ -108,6 +110,7 @@
                         android:layout_height="wrap_content"
                         android:text="Total Expenses"/>
                     <TextView
+                        android:id="@+id/total_expense_display"
                         android:textStyle="bold"
                         android:textColor="?colorOnPrimary"
                         android:textSize="20sp"

@@ -2,7 +2,6 @@ package com.example.jdtwam2finals.fragments;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -16,21 +15,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.jdtwam2finals.R;
 import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.IncomeTable;
-import com.example.jdtwam2finals.dao.QueryBuilder;
+import com.example.jdtwam2finals.utils.QueryBuilder;
 import com.example.jdtwam2finals.dao.TransactionTable;
 import com.example.jdtwam2finals.databinding.FragmentIncomeBinding;
 import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
-import com.google.android.material.button.MaterialButton;
+import com.example.jdtwam2finals.utils.MonthSetter;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -123,7 +118,7 @@ public class IncomeFragment extends Fragment {
 
                 QueryBuilder<Transaction> transactionBuilder = new TransactionTable(dbCon.getWritableDatabase());
                 int userId = sp.getInt("user", -1);
-                long transactionId = transactionBuilder.insert(new Transaction("Income", new Date(), (int) userId));
+                long transactionId = transactionBuilder.insert(new Transaction("Income", new Date(), MonthSetter.currentMonth(), userId));
                 if (transactionId != -1){
                     Log.d("insertTransaction", "Transaction successfully inserted: " + transactionId);
                     QueryBuilder<Income> incomeQueryBuilder = new IncomeTable(dbCon.getWritableDatabase());
@@ -140,6 +135,9 @@ public class IncomeFragment extends Fragment {
                         note.setText("");
                     }else{
                         Log.d("insertTransaction", "Income did not insert, deleting transaction: " + transactionId);
+                        transactionBuilder.delete()
+                                .one((int) transactionId)
+                                .execDelete();
                     }
                 }
 

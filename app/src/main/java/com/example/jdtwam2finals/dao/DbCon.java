@@ -20,6 +20,14 @@ public class DbCon extends SQLiteOpenHelper {
         super(applicationContext, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    /**
+     * Singleton pattern:
+     *
+     * Sets up DbCon instance if no instance is created, returns existing instance if instantiated
+     *
+     * @param context
+     * @return instance
+     */
     public static synchronized DbCon getInstance(Context context) {
         if (instance == null) {
             instance = new DbCon(context.getApplicationContext());

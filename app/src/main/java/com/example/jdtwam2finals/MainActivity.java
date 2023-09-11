@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
         Boolean isLogged;
         ExecutorService e = Executors.newCachedThreadPool();
-        Future<Boolean> futureTask = (Future<Boolean>) e.submit(() -> {
+        Future<Boolean> futureTask = e.submit(() -> {
             sp = getSharedPreferences("login", MODE_PRIVATE);
             if (sp.getInt("user", -1) != -1){
                 return true;

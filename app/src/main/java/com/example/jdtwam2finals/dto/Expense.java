@@ -1,10 +1,20 @@
 package com.example.jdtwam2finals.dto;
 
 public class Expense {
+
+    private Integer expenseId;
     private Double amount;
     private String category;
     private String note;
     private Integer transactionId;
+
+    public Expense(Integer expenseId, Double amount, String category, String note, Integer transactionId) {
+        this.expenseId = expenseId;
+        this.amount = amount;
+        this.category = category;
+        this.note = note;
+        this.transactionId = transactionId;
+    }
 
     public Expense(Double amount, String category, String note, Integer transactionId) {
         this.amount = amount;
@@ -39,6 +49,14 @@ public class Expense {
 
     public Integer getTransactionId() {
         return transactionId;
+    }
+
+    public Integer getExpenseId() {
+        return expenseId;
+    }
+
+    public void setExpenseId(Integer expenseId) {
+        this.expenseId = expenseId;
     }
 
     public void setTransactionId(Integer transactionId) {
