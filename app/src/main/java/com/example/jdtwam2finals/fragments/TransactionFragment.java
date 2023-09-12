@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +68,7 @@ public class TransactionFragment extends Fragment {
     private TextView monthSpinner, expenses, income;
     private List<Transaction> transactionsList;
     private Button export;
+    private LinearLayout incomeDisplay, expenseDisplay;
     private static final String[] MONTHS = {
             "January",
             "February",
@@ -146,6 +148,9 @@ public class TransactionFragment extends Fragment {
         expenses = b.monthlyExpenses;
         income = b.monthlyIncome;
         export = b.exportButton;
+        incomeDisplay = b.incomeDisplay;
+        expenseDisplay = b.expenseDisplay;
+
         setMonthSpinner();
 
         prev.setOnClickListener(v -> {
@@ -311,8 +316,21 @@ public class TransactionFragment extends Fragment {
         income.setText(moneyPrefix.concat(getIncome != null ?
                 MonetaryFormat.formatCurrencyWithTrim(getIncome)
                 : MonetaryFormat.formatCurrencyWithTrim(0)));
+
+        Double finalGetExpense = getExpense;
+        expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense for " + MONTHS[currentMonth] + ": " + finalGetExpense));
+
+        Double finalGetIncome = getIncome;
+        incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
+
         tAdapter = new TransactionAdapter(context, transactionsList, false, () -> setMonthSpinner());
-        transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
+        transactionsDisplay.setLayoutManager(new LinearLayoutManager(context) {
+            @Override
+            public boolean canScrollVertically() {
+                return false;
+            }
+        });
+
         transactionsDisplay.setAdapter(tAdapter);
     }
     public void deleteTransaction(Transaction t){
@@ -336,6 +354,10 @@ public class TransactionFragment extends Fragment {
                 .delete()
                 .one(t.getTransactionId())
                 .execDelete();
+    }
+
+    public void displayClicked(String message){
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
 }

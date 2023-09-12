@@ -14,7 +14,7 @@
         <LinearLayout
             android:orientation="vertical"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/income_submit"
+            app:layout_constraintBottom_toTopOf="@id/expense_submit"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_width="match_parent"

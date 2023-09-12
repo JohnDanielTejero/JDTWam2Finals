@@ -15,7 +15,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.jdtwam2finals.Adapters.TransactionAdapter;
 import com.example.jdtwam2finals.dao.DbCon;
@@ -54,6 +56,7 @@ public class DashboardFragment extends Fragment {
     private DbCon dbCon;
     private SharedPreferences sp;
     private TextView total_income, total_expense, total_balance;
+    private LinearLayout balanceDisplay, incomeDisplay, expenseDisplay;
     private List<Transaction> t;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -114,6 +117,10 @@ public class DashboardFragment extends Fragment {
         total_income = b.totalIncomeDisplay;
         total_expense = b.totalExpenseDisplay;
         total_balance = b.totalBalanceDisplay;
+
+        balanceDisplay = b.balanceDisplay;
+        incomeDisplay = b.incomeDisplay;
+        expenseDisplay = b.expenseDisplay;
 
         Double getIncome = null;
         Double getExpense = null;
@@ -245,13 +252,24 @@ public class DashboardFragment extends Fragment {
         total_income.setText(moneyPrefix.concat(getIncome != null ?
                 MonetaryFormat.formatCurrencyWithTrim(getIncome)
                 : MonetaryFormat.formatCurrencyWithTrim(0)));
+
         total_balance.setText(moneyPrefix.concat((balance != null ?
                 MonetaryFormat.formatCurrencyWithTrim(balance)
                 : "0")));
+
+        balanceDisplay.setOnClickListener(v -> displayClicked("Total Balance: " + balance));
+        Double finalGetExpense = getExpense;
+        expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense: " + finalGetExpense));
+        Double finalGetIncome = getIncome;
+        incomeDisplay.setOnClickListener(v -> displayClicked("Total Income: " + finalGetIncome));
 
         tAdapter = new TransactionAdapter(context, t, true, null);
         b.recentTransactions.setLayoutManager(new LinearLayoutManager(context));
         b.recentTransactions.setAdapter(tAdapter);
         Log.d("money", getIncome.toString());
+    }
+
+    public void displayClicked(String message){
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 }
