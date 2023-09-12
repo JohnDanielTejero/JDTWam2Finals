@@ -130,7 +130,6 @@ public class AuthActivity extends AppCompatActivity {
             username = cursor.getString(cursor.getColumnIndexOrThrow(UserTable.COLUMN_USERNAME));
             cursor.close();
             dialogBinding.dialogUsername.setText("Currently logged in as: " + username);
-            dialogBinding.dialogProfileHeader.setText(username);
             dialogBinding.dialogLogoutButton.setOnClickListener(v -> {
                 SharedPreferences.Editor Ed=sp.edit();
                 Ed.remove("user").commit();
