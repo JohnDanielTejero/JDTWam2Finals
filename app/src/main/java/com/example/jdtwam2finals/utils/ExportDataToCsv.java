@@ -30,9 +30,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Utility class for Csv Exporting
+ *
+ */
 public class ExportDataToCsv {
     private static final String TAG = "CsvExporter";
 
+    /**
+     * Method for exporting CSV.
+     *
+     * @param context - Context of the app
+     * @return boolean
+     */
     public static boolean exportDatabaseToCsv(Context context) {
         // Create or open your SQLite database
         DbCon dbHelper = DbCon.getInstance(context);
