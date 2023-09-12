@@ -80,6 +80,11 @@ public class AuthActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Custom implementation for initializing fragments
+     *
+     * @param fragmentId - id of fragment
+     */
     private void initializeFragment(int fragmentId) {
         Fragment fragment = null;
         if (fragmentId == R.id.dashboard_option) {
@@ -102,12 +107,23 @@ public class AuthActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putInt("selectedFragmentId", selectedFragmentId);
     }
+
+    /**
+     * Custom implementation for replacing fragments
+     *
+     * @param f - Fragment
+     */
     private void replaceFragment (Fragment f){
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
         ft.replace(b.fragmentContainerView.getId(), f);
         ft.commit();
     }
+
+    /**
+     * Custom implementation for showing dialog
+     *
+     */
     private void showDialog() {
         if (dialogBinding.getRoot().getParent() != null) {
             ((ViewGroup) dialogBinding.getRoot().getParent()).removeView(dialogBinding.getRoot());
