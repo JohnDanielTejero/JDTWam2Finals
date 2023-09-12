@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list>
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android">
+            <solid android:color="@android:color/transparent" /> <!-- Background color (transparent in this case) -->
+            <stroke
+                android:color="?customTitleColor"
+                android:width="1dp"/>
+            <corners android:radius="10dp" />
+            <padding android:right="5dp" android:left="5dp" android:bottom="5dp" android:top="5dp"/><!-- Set the radius to control the roundness of the corners -->
+        </shape>
+
+    </item>
+</layer-list>

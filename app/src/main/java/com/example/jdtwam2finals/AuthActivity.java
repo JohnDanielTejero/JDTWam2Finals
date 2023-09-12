@@ -4,28 +4,52 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
+import com.example.jdtwam2finals.dao.DbCon;
+import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.ActivityAuthBinding;
+import com.example.jdtwam2finals.databinding.BottomDialogBinding;
+import com.example.jdtwam2finals.dto.User;
 import com.example.jdtwam2finals.fragments.DashboardFragment;
 import com.example.jdtwam2finals.fragments.ExpenseFragment;
 import com.example.jdtwam2finals.fragments.IncomeFragment;
 import com.example.jdtwam2finals.fragments.TransactionFragment;
+import com.example.jdtwam2finals.utils.QueryBuilder;
+
+import java.text.ParseException;
+import java.util.List;
 
 public class AuthActivity extends AppCompatActivity {
 
     private ActivityAuthBinding b;
     private int selectedFragmentId;
     private SharedPreferences sp;
+    private DbCon dbCon;
+    private BottomDialogBinding dialogBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
          b = ActivityAuthBinding.inflate(getLayoutInflater());
+         dialogBinding = BottomDialogBinding.inflate(getLayoutInflater());
+         dbCon = DbCon.getInstance(this);
         setContentView(b.getRoot());
 
         if (savedInstanceState != null) {
@@ -51,11 +75,8 @@ public class AuthActivity extends AppCompatActivity {
         });
         sp = getSharedPreferences("login", MODE_PRIVATE);
 
-        b.logoutButton.setOnClickListener(v -> {
-            SharedPreferences.Editor Ed=sp.edit();
-            Ed.remove("user").commit();
-            Intent i = new Intent(this, MainActivity.class);
-            startActivity(i);
+        b.settingsButton.setOnClickListener(v -> {
+            showDialog();
         });
     }
 
@@ -87,5 +108,44 @@ public class AuthActivity extends AppCompatActivity {
         ft.replace(b.fragmentContainerView.getId(), f);
         ft.commit();
     }
+    private void showDialog() {
+        if (dialogBinding.getRoot().getParent() != null) {
+            ((ViewGroup) dialogBinding.getRoot().getParent()).removeView(dialogBinding.getRoot());
+        }
 
+        final Dialog dialog = new Dialog(this);
+
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(dialogBinding.getRoot());
+
+        int userId = sp.getInt("user", -1);
+        String username = null;
+        QueryBuilder<User> userQueryBuilder = new UserTable(dbCon.getReadableDatabase());
+        Cursor cursor = userQueryBuilder
+                .find()
+                .one(userId)
+                .exec();
+        if (cursor != null && cursor.getCount() > 0){
+            cursor.moveToFirst();
+            username = cursor.getString(cursor.getColumnIndexOrThrow(UserTable.COLUMN_USERNAME));
+            cursor.close();
+            dialogBinding.dialogUsername.setText("Currently logged in as: " + username);
+            dialogBinding.dialogProfileHeader.setText(username);
+            dialogBinding.dialogLogoutButton.setOnClickListener(v -> {
+                SharedPreferences.Editor Ed=sp.edit();
+                Ed.remove("user").commit();
+                dialog.dismiss();
+                Intent i = new Intent(this, MainActivity.class);
+                startActivity(i);
+            });
+
+            dialogBinding.dismissDialog.setOnClickListener(v -> dialog.dismiss());
+
+            dialog.show();
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+            dialog.getWindow().setGravity(Gravity.BOTTOM);
+        }
+    }
 }
