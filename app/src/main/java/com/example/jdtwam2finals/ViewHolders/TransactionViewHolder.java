@@ -59,6 +59,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
             icon.setImageResource(R.drawable.price_price_tag_cost_svgrepo_com);
             note.setText(transaction.getExpense().getNote());
             category.setText(transaction.getExpense().getCategory());
+            amount.setText("Php " + MonetaryFormat.formatCurrencyWithTrim(transaction.getExpense().getAmount()));
 
         } else if ("Income".equals(transaction.getType())) {
             icon.setImageResource(R.drawable.wallet_to_save_dollars_svgrepo_com);
