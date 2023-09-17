@@ -116,7 +116,8 @@ public class IncomeFragment extends Fragment {
 
             if (amountIsSubmittable && noteIsSubmittable){
 
-                QueryBuilder<Transaction> transactionBuilder = new TransactionTable(dbCon.getWritableDatabase());
+                QueryBuilder<Transaction> transactionBuilder = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+                transactionBuilder.database(dbCon.getWritableDatabase());
                 int userId = sp.getInt("user", -1);
                 long transactionId = transactionBuilder.insert(new Transaction("Income", new Date(), MonthSetter.currentMonth(), userId));
                 if (transactionId != -1){

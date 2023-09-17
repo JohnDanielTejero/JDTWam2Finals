@@ -22,11 +22,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     protected Integer limitBy;
     private Boolean isCount = false;
     private String sumOfColumn = null;
-
-    public QueryBuilderImpl(SQLiteDatabase db) {
-        this.database(db);
-    }
-
+    private static QueryBuilder instance = null;
     private String orderBy = "1";
     private boolean orderByAsc = false;
     private static final String WHERE_CLAUSE = " WHERE ";
@@ -40,6 +36,16 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
 
     }
 
+    public QueryBuilderImpl(SQLiteDatabase db) {
+        this.database(db);
+    }
+
+    public static synchronized QueryBuilder<?> getAndSetInstance(QueryBuilder<?> setInstance){
+        if (instance == null){
+            instance = setInstance;
+        }
+        return instance;
+    }
     @Override
     public QueryBuilder<T> database(SQLiteDatabase db) {
         this.db = db;
@@ -110,6 +116,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 }
                 Log.d("sqlQuery", query.toString());
                 db.execSQL(query.toString(), condition_identifier.toArray(new String[condition_identifier.size()]));
+                instance = null;
             }else{
                 throw new Exception("Query cannot be processed");
             }
@@ -172,15 +179,18 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 throw new Exception("Query cannot be processed");
             }
             Log.d("sqlQuery", query.toString());
-            return this.db.rawQuery(
+            Cursor cursor = this.db.rawQuery(
                     query.toString(),
                     condition_identifier != null ? condition_identifier
                             .toArray(new String[condition_identifier.size()])
                             : null);
+            instance = null;
+            return cursor;
 
         }catch(Exception e){
             Log.d("execution_db", e.getMessage());
         }
+        instance = null;
         return null;
     }
 
@@ -236,6 +246,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
             }
             return extractedConditions + ":" + extractedIdentifiers;
         }
+        instance = null;
         return null;
     }
 }

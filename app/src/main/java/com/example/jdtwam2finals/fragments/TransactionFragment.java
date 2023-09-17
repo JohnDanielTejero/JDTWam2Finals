@@ -191,7 +191,8 @@ public class TransactionFragment extends Fragment {
 
         Future<Double> incomeAmount = e.submit(() -> {
             int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
+            QueryBuilder<Transaction> queryBuilder = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            queryBuilder.database(dbCon.getReadableDatabase());
             Cursor cursor = queryBuilder
                     .find()
                     .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
@@ -210,7 +211,8 @@ public class TransactionFragment extends Fragment {
 
         Future<Double> expenseAmount = e.submit(() -> {
             int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
+            QueryBuilder<Transaction> queryBuilder = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            queryBuilder.database(dbCon.getReadableDatabase());
             Cursor cursor = queryBuilder
                     .find()
                     .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
@@ -230,7 +232,8 @@ public class TransactionFragment extends Fragment {
         Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
             List<Transaction> currentTransaction = new ArrayList<>();
-            QueryBuilder<Transaction> query = new TransactionTable(dbCon.getReadableDatabase());
+            QueryBuilder<Transaction> query = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            query.database(dbCon.getReadableDatabase());
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                     .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
@@ -247,7 +250,8 @@ public class TransactionFragment extends Fragment {
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
-                            QueryBuilder<Expense> exp = new ExpenseTable(dbCon.getReadableDatabase());
+                            QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+                            exp.database(dbCon.getReadableDatabase());
                             Cursor expCur = exp.find()
                                     .where(ExpenseTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();
@@ -265,7 +269,8 @@ public class TransactionFragment extends Fragment {
                             }
 
                         } else if ("Income".equals(t.getType())) {
-                            QueryBuilder<Income> inc = new IncomeTable(dbCon.getReadableDatabase());
+                            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+                            inc.database(dbCon.getReadableDatabase());
                             Cursor incCur = inc.find()
                                     .where(IncomeTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();
@@ -335,13 +340,15 @@ public class TransactionFragment extends Fragment {
     }
     public void deleteTransaction(Transaction t){
         if ("Expense".equals(t.getType())) {
-            QueryBuilder<Expense> exp = new ExpenseTable(dbCon.getWritableDatabase());
+            QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+            exp.database(dbCon.getWritableDatabase());
             exp.delete()
                     .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
                     .execDelete();
         } else if ("Income".equals(t.getType())) {
-            QueryBuilder<Income> exp = new IncomeTable(dbCon.getWritableDatabase());
-            exp.delete()
+            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+            inc.database(dbCon.getWritableDatabase());
+            inc.delete()
                     .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))
                     .execDelete();
 
@@ -349,7 +356,8 @@ public class TransactionFragment extends Fragment {
             Log.d("ViewHolder", "Unrecognized Type");
         }
 
-        QueryBuilder<Transaction> transactQuery = new TransactionTable(dbCon.getWritableDatabase());
+        QueryBuilder<Transaction> transactQuery = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+        transactQuery.database(dbCon.getWritableDatabase());
         transactQuery
                 .delete()
                 .one(t.getTransactionId())

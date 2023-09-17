@@ -110,7 +110,8 @@ public class LoginFragment extends Fragment {
             }
 
             if (submittable) {
-                QueryBuilder<User> query = new UserTable(dbCon.getReadableDatabase());
+                QueryBuilder<User> query = (QueryBuilder<User>) UserTable.getAndSetInstance(new UserTable());
+                query.database(dbCon.getReadableDatabase());
                 User checkUser = new User();
                 //QueryBuilder<User> query = userTable.database(dbCon.getReadableDatabase());
                 Cursor cursor = query

@@ -82,13 +82,15 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
 
     public void deleteTransaction(Transaction t, SQLiteDatabase db){
         if ("Expense".equals(t.getType())) {
-          QueryBuilder<Expense> exp = new ExpenseTable(db);
+          QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+          exp.database(db);
           exp.delete()
                   .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
                   .execDelete();
         } else if ("Income".equals(t.getType())) {
-            QueryBuilder<Income> exp = new IncomeTable(db);
-            exp.delete()
+            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+            inc.database(db);
+            inc.delete()
                     .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))
                     .execDelete();
 
