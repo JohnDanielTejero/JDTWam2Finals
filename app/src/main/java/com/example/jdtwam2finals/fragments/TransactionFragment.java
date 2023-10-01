@@ -191,7 +191,7 @@ public class TransactionFragment extends Fragment {
 
         Future<Double> incomeAmount = e.submit(() -> {
             int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            QueryBuilder<Transaction> queryBuilder = new TransactionTable();
             queryBuilder.database(dbCon.getReadableDatabase());
             Cursor cursor = queryBuilder
                     .find()
@@ -204,6 +204,7 @@ public class TransactionFragment extends Fragment {
             if (cursor != null && cursor.getCount() > 0){
                 cursor.moveToFirst();
                 Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                cursor.close();
                 return sum;
             }
             return null;
@@ -211,7 +212,7 @@ public class TransactionFragment extends Fragment {
 
         Future<Double> expenseAmount = e.submit(() -> {
             int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            QueryBuilder<Transaction> queryBuilder = new TransactionTable();
             queryBuilder.database(dbCon.getReadableDatabase());
             Cursor cursor = queryBuilder
                     .find()
@@ -224,6 +225,7 @@ public class TransactionFragment extends Fragment {
             if (cursor != null && cursor.getCount() > 0){
                 cursor.moveToFirst();
                 Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                cursor.close();
                 return sum;
             }
             return null;
@@ -232,7 +234,7 @@ public class TransactionFragment extends Fragment {
         Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
             List<Transaction> currentTransaction = new ArrayList<>();
-            QueryBuilder<Transaction> query = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            QueryBuilder<Transaction> query = new TransactionTable();
             query.database(dbCon.getReadableDatabase());
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
@@ -250,7 +252,7 @@ public class TransactionFragment extends Fragment {
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
-                            QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+                            QueryBuilder<Expense> exp =new ExpenseTable();
                             exp.database(dbCon.getReadableDatabase());
                             Cursor expCur = exp.find()
                                     .where(ExpenseTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
@@ -269,7 +271,7 @@ public class TransactionFragment extends Fragment {
                             }
 
                         } else if ("Income".equals(t.getType())) {
-                            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+                            QueryBuilder<Income> inc = new IncomeTable();
                             inc.database(dbCon.getReadableDatabase());
                             Cursor incCur = inc.find()
                                     .where(IncomeTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
@@ -329,12 +331,7 @@ public class TransactionFragment extends Fragment {
         incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
 
         tAdapter = new TransactionAdapter(context, transactionsList, false, () -> setMonthSpinner());
-        transactionsDisplay.setLayoutManager(new LinearLayoutManager(context) {
-            @Override
-            public boolean canScrollVertically() {
-                return false;
-            }
-        });
+        transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
 
         transactionsDisplay.setAdapter(tAdapter);
     }
