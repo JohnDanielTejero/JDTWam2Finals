@@ -69,7 +69,7 @@ public class TransactionFragment extends Fragment {
     private ImageButton prev, next;
     private TextView monthSpinner, expenses, income;
     private List<Transaction> transactionsList;
-    private Button export, viewMonthPicker;
+    private Button export;
     private LinearLayout incomeDisplay, expenseDisplay;
     private LocalDate selectedDate;
     private static final String[] MONTHS = {
@@ -152,7 +152,6 @@ public class TransactionFragment extends Fragment {
         export = b.exportButton;
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
-        viewMonthPicker = b.monthPreview;
         selectedDate = LocalDate.now();
         setMonthSpinner();
 
@@ -186,7 +185,7 @@ public class TransactionFragment extends Fragment {
             }
         });
 
-        viewMonthPicker.setOnClickListener(v -> {
+        monthSpinner.setOnClickListener(v -> {
             if (selectedDate == null) {
                 return;
             }

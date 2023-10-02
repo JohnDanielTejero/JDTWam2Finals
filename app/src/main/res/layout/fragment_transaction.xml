@@ -37,16 +37,18 @@
                     android:background="@drawable/ripple_effect"
                     android:scaleX="-1"
                     />
+
                 <TextView
                     android:id="@+id/month_spinner"
-                    android:textColor="?customTitleColor"
-                    android:layout_marginHorizontal="5sp"
-                    android:textStyle="bold"
-                    android:textSize="20sp"
                     android:layout_width="100sp"
-                    android:gravity="center"
                     android:layout_height="wrap_content"
-                    android:text="MONTH"/>
+                    android:layout_marginHorizontal="5sp"
+                    android:gravity="center"
+                    android:text="MONTH"
+                    android:background="@drawable/background_color_ripple"
+                    android:textColor="@drawable/text_color_ripple"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
                 <ImageButton
                     android:clickable="true"
                     android:focusable="true"
@@ -133,17 +135,6 @@
                         android:text="Php 20.00"/>
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/month_preview"
-                app:layout_constraintTop_toBottomOf="@id/expenses_income_display"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_bias="0.04"
-                app:layout_constraintVertical_bias="0.01"
-                android:text="View Month Preview" />
             <Button
                 android:id="@+id/export_button"
                 app:layout_constraintTop_toBottomOf="@id/expenses_income_display"
