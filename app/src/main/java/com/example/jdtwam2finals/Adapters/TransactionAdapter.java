@@ -20,6 +20,7 @@ import com.example.jdtwam2finals.dao.IncomeTable;
 import com.example.jdtwam2finals.dao.TransactionTable;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.TransactionViewHolderBinding;
+import com.example.jdtwam2finals.databinding.UpdateTransactionDialogBinding;
 import com.example.jdtwam2finals.dto.Expense;
 import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
@@ -39,6 +40,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionViewHold
     private SharedPreferences sb;
     private List<Transaction> transactionList = new ArrayList<>();
     private TransactionViewHolderBinding tViewBinding;
+    private UpdateTransactionDialogBinding updateB;
     private DbCon dbCon;
     private boolean isDashboard = false;
     private Callback cb;
@@ -59,7 +61,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionViewHold
     @Override
     public TransactionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         tViewBinding = TransactionViewHolderBinding.inflate(LayoutInflater.from(context), parent, false);
-        return new TransactionViewHolder(tViewBinding.getRoot(), tViewBinding, isDashboard, cb, context);
+        updateB = UpdateTransactionDialogBinding.inflate(LayoutInflater.from(context), parent, false);
+        return new TransactionViewHolder(tViewBinding.getRoot(), tViewBinding, updateB, isDashboard, cb, context);
     }
 
     @Override

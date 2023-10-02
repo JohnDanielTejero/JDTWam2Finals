@@ -22,7 +22,7 @@ import android.widget.TextView;
 import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.ActivityAuthBinding;
-import com.example.jdtwam2finals.databinding.BottomDialogBinding;
+import com.example.jdtwam2finals.databinding.SettingsDialogBinding;
 import com.example.jdtwam2finals.dto.User;
 import com.example.jdtwam2finals.fragments.DashboardFragment;
 import com.example.jdtwam2finals.fragments.ExpenseFragment;
@@ -36,13 +36,13 @@ public class AuthActivity extends AppCompatActivity {
     private int selectedFragmentId;
     private SharedPreferences sp;
     private DbCon dbCon;
-    private BottomDialogBinding dialogBinding;
+    private SettingsDialogBinding dialogBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
          b = ActivityAuthBinding.inflate(getLayoutInflater());
-         dialogBinding = BottomDialogBinding.inflate(getLayoutInflater());
+         dialogBinding = SettingsDialogBinding.inflate(getLayoutInflater());
          dbCon = DbCon.getInstance(this);
         setContentView(b.getRoot());
 
