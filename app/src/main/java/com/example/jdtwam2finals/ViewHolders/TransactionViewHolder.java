@@ -52,8 +52,8 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
     private Button dateButton;
 
     public TransactionViewHolder(@NonNull View itemView, TransactionViewHolderBinding binding,
-                                 UpdateTransactionDialogBinding ub,
-                                 boolean isDashboard, Callback cb, Context context) {
+                                 UpdateTransactionDialogBinding ub, boolean isDashboard,
+                                 Callback cb, Context context) {
         super(itemView);
         b = binding;
         this.context = context;
