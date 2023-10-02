@@ -68,7 +68,6 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         this.updateB = ub;
         this.isDashboard = isDashboard;
         this.cb = cb;
-
     }
 
     public void bind(Transaction transaction, SQLiteDatabase db) {
