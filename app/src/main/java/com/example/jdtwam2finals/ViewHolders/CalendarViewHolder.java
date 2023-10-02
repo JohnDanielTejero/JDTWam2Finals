@@ -2,6 +2,7 @@ package com.example.jdtwam2finals.ViewHolders;
 
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;

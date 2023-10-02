@@ -1,7 +1,6 @@
 package com.example.jdtwam2finals.Adapters;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -26,18 +25,12 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
     public CalendarViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         DayCellBinding binding = DayCellBinding.inflate(inflater, parent, false);
-        View view = binding.getRoot();
-        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
-        layoutParams.height = (int) (parent.getHeight() / 6);
-        return new CalendarViewHolder(view, onItemListener, binding);
+        return new CalendarViewHolder(binding, onItemListener);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CalendarViewHolder holder, int position) {
-        if (holder.textDate != null) {
-            holder.bind(daysOfMonth.get(position));
-
-        }
+        holder.bind(daysOfMonth.get(position));
 
     }
 
