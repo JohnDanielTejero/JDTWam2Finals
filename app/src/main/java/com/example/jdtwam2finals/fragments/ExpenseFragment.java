@@ -105,6 +105,7 @@ public class ExpenseFragment extends Fragment {
             boolean amountIsSubmittable = true;
             boolean noteIsSubmittable = true;
             boolean categoryIsSubmittable = true;
+            String regex = "[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?";
 
             if (amount.getText().toString().isEmpty()){
                 amount.setError("Field is required!");
@@ -119,6 +120,11 @@ public class ExpenseFragment extends Fragment {
             if (category.getText().toString().isEmpty()){
                 category.setError("Field is required!");
                 categoryIsSubmittable = false;
+            }
+
+            if (!amount.getText().toString().matches(regex)){
+                amount.setError("Field should be in correct format.");
+                amountIsSubmittable = false;
             }
 
             if (amountIsSubmittable && noteIsSubmittable && categoryIsSubmittable){

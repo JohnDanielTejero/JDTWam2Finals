@@ -53,7 +53,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionViewHold
         this.isDashboard = isDashboard;
         this.cb = cb;
         dbCon = DbCon.getInstance(context);
-
     }
 
     @NonNull

@@ -98,6 +98,7 @@ public class IncomeFragment extends Fragment {
         submit = b.incomeSubmit;
         amount = b.incomeAmount;
         note = b.incomeNote;
+        String regex = "[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?";
 
         submit.setOnClickListener(v -> {
 
@@ -113,6 +114,12 @@ public class IncomeFragment extends Fragment {
                 note.setError("Field is required!");
                 noteIsSubmittable = false;
             }
+
+            if (!amount.getText().toString().matches(regex)){
+                amount.setError("Field should be in correct format.");
+                amountIsSubmittable = false;
+            }
+
 
             if (amountIsSubmittable && noteIsSubmittable){
 

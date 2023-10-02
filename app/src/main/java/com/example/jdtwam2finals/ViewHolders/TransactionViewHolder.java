@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.jdtwam2finals.R;
-import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.ExpenseTable;
 import com.example.jdtwam2finals.dao.IncomeTable;
 import com.example.jdtwam2finals.dao.TransactionTable;
@@ -29,7 +28,7 @@ import java.text.SimpleDateFormat;
 
 public class TransactionViewHolder extends RecyclerView.ViewHolder {
 
-    private ImageButton deleteButton;
+    private ImageButton deleteButton, editButton;
     private ImageView icon;
     private TextView type, note, category, date, amount;
     private TransactionViewHolderBinding b;
@@ -47,6 +46,8 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         category = b.holderTransactionCategory;
         date = b.holderTransactionDate;
         amount = b.holderAmount;
+        editButton = b.editButton;
+
         this.isDashboard = isDashboard;
         this.cb = cb;
     }
@@ -72,9 +73,16 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         }
 
         if (!isDashboard) {
-            deleteButton.setVisibility(View.VISIBLE);
+            editButton.setVisibility(View.VISIBLE);
+            deleteButton.setVisibility(View.GONE);
+
             deleteButton.setOnClickListener(v -> deleteTransaction(transaction, db));
+            editButton.setOnClickListener(v-> {
+
+            });
+
         } else {
+            editButton.setVisibility(View.GONE);
             deleteButton.setVisibility(View.GONE);
         }
 
@@ -82,13 +90,13 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
 
     public void deleteTransaction(Transaction t, SQLiteDatabase db){
         if ("Expense".equals(t.getType())) {
-          QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+          QueryBuilder<Expense> exp = new ExpenseTable();
           exp.database(db);
           exp.delete()
                   .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
                   .execDelete();
         } else if ("Income".equals(t.getType())) {
-            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+            QueryBuilder<Income> inc = new IncomeTable();
             inc.database(db);
             inc.delete()
                     .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))

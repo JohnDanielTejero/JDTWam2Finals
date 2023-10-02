@@ -153,6 +153,7 @@ public class TransactionFragment extends Fragment {
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
         viewMonthPicker = b.monthPreview;
+        viewMonthPicker.setVisibility(View.GONE);
         selectedDate = LocalDate.now();
         setMonthSpinner();
 
@@ -346,7 +347,7 @@ public class TransactionFragment extends Fragment {
         Double finalGetIncome = getIncome;
         incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
 
-        tAdapter = new TransactionAdapter(context, transactionsList, false, () -> setMonthSpinner());
+        tAdapter = new TransactionAdapter(context, transactionsList, false, this::setMonthSpinner);
         transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
         transactionsDisplay.setAdapter(tAdapter);
     }

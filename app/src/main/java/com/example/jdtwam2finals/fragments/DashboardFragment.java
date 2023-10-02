@@ -161,11 +161,13 @@ public class DashboardFragment extends Fragment {
             return null;
         });
 
-        Future<List<?>> transactions = e.submit(() -> {
+        @SuppressLint("Range") Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
+
             List<Transaction> currentTransaction = new ArrayList<>();
-            QueryBuilder<Transaction> query = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+            QueryBuilder<Transaction> query = new TransactionTable();
             query.database(dbCon.getReadableDatabase());
+
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                     .orderBy(0)
@@ -182,7 +184,7 @@ public class DashboardFragment extends Fragment {
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
-                            QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+                            QueryBuilder<Expense> exp = new ExpenseTable();
                             exp.database(dbCon.getReadableDatabase());
                             Cursor expCur = exp.find()
                                     .where(ExpenseTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))

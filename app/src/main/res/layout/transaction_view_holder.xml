@@ -83,7 +83,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Php 21.00"/>
-
+    <ImageButton
+        android:background="@drawable/edit_ripple"
+        android:id="@+id/edit_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:clickable="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/delete_button"
+        app:layout_constraintVertical_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.96"
+        android:textColor="?colorOnPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/holder_amount"
+        app:srcCompat="@drawable/ic_edit"/>
     <ImageButton
         android:background="@drawable/delete_ripple"
         android:id="@+id/delete_button"
