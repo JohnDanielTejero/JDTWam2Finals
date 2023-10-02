@@ -16,18 +16,16 @@ public class CalendarViewHolder extends RecyclerView.ViewHolder {
 
     public TextView textDate;
     private DayCellBinding b;
-    public CalendarViewHolder(@NonNull View itemView, Callback onItemListener, DayCellBinding binding) {
-        super(itemView);
-        b = binding;
-        this.textDate = b.calendarDayCell;
-        itemView.setOnClickListener(v -> onItemListener.execute());
-    }
 
-    public CalendarViewHolder(DayCellBinding binding, Callback onItemListener) {
+    public CalendarViewHolder(DayCellBinding binding) {
         super(binding.getRoot());
         this.b = binding;
         this.textDate = b.calendarDayCell;
-        this.textDate.setOnClickListener(v -> onItemListener.execute());
+        this.textDate.setOnClickListener(v -> {
+            if (!this.textDate.getText().toString().isEmpty()){
+                Log.d("test", "clicked");
+            }
+        });
     }
 
     public void bind(String text) {

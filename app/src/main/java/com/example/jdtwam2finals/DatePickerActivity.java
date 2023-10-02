@@ -37,9 +37,7 @@ public class DatePickerActivity extends AppCompatActivity {
         daysInMonth = daysInMonthArray(selectedDate);
         Log.d("MonthDebug",daysInMonth.toString());
         if (daysInMonth.size() > 0) {
-            CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, () -> {
-                Log.d("test", "clicked");
-            });
+            CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth);
             b.monthTitle.setText(selectedMonth);
             RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 7);
             calendarRecyclerView.setLayoutManager(layoutManager);
