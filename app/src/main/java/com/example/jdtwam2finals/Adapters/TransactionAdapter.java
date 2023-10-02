@@ -3,36 +3,22 @@ package com.example.jdtwam2finals.Adapters;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.jdtwam2finals.*;
 import com.example.jdtwam2finals.ViewHolders.TransactionViewHolder;
 import com.example.jdtwam2finals.dao.DbCon;
-import com.example.jdtwam2finals.dao.ExpenseTable;
-import com.example.jdtwam2finals.dao.IncomeTable;
-import com.example.jdtwam2finals.dao.TransactionTable;
-import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.TransactionViewHolderBinding;
 import com.example.jdtwam2finals.databinding.UpdateTransactionDialogBinding;
-import com.example.jdtwam2finals.dto.Expense;
-import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
 import com.example.jdtwam2finals.utils.Callback;
-import com.example.jdtwam2finals.utils.QueryBuilder;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionViewHolder> {
 

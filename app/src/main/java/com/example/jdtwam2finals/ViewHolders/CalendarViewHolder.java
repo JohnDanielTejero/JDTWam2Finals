@@ -1,16 +1,11 @@
 package com.example.jdtwam2finals.ViewHolders;
 
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.jdtwam2finals.R;
 import com.example.jdtwam2finals.databinding.DayCellBinding;
-import com.example.jdtwam2finals.utils.Callback;
 
 public class CalendarViewHolder extends RecyclerView.ViewHolder {
 

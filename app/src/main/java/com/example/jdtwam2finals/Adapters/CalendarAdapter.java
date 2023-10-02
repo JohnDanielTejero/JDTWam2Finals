@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.jdtwam2finals.ViewHolders.CalendarViewHolder;
 import com.example.jdtwam2finals.databinding.DayCellBinding;
-import com.example.jdtwam2finals.utils.Callback;
 
 import java.util.ArrayList;
 
