@@ -74,7 +74,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
 
         if (!isDashboard) {
             editButton.setVisibility(View.VISIBLE);
-            deleteButton.setVisibility(View.GONE);
+            deleteButton.setVisibility(View.VISIBLE);
 
             deleteButton.setOnClickListener(v -> deleteTransaction(transaction, db));
             editButton.setOnClickListener(v-> {

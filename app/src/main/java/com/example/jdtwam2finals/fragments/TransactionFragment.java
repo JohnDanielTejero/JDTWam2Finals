@@ -153,7 +153,6 @@ public class TransactionFragment extends Fragment {
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
         viewMonthPicker = b.monthPreview;
-        viewMonthPicker.setVisibility(View.GONE);
         selectedDate = LocalDate.now();
         setMonthSpinner();
 

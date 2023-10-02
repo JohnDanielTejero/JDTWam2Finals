@@ -137,30 +137,37 @@ public class ExpenseFragment extends Fragment {
                     Log.d("insertTransaction", "Transaction successfully inserted: " + transactionId);
                     QueryBuilder<Expense> expenseQueryBuilder = new ExpenseTable(dbCon.getWritableDatabase());
 
-                    long expenseId = expenseQueryBuilder.insert(new Expense(
-                            Double.parseDouble(amount.getText().toString()),
-                            category.getText().toString(),
-                            note.getText().toString(),
-                            (int) transactionId
-                    ));
-                    if (expenseId != -1){
-                        Log.d("insertTransaction", "Expense inserted: " + expenseId);
-                        Toast.makeText(context, "Expense inserted", Toast.LENGTH_SHORT).show();
-                        amount.setText("");
-                        note.setText("");
-                        category.setText("");
-                    }else{
-                        Log.d("insertTransaction",
-                                "Expense did not insert, deleting transaction: " + transactionId
-                        );
+                    try {
+                        long expenseId = expenseQueryBuilder.insert(new Expense(
+                                Double.parseDouble(amount.getText().toString()),
+                                category.getText().toString(),
+                                note.getText().toString(),
+                                (int) transactionId
+                        ));
+                        if (expenseId != -1){
+                            Log.d("insertTransaction", "Expense inserted: " + expenseId);
+                            Toast.makeText(context, "Expense inserted", Toast.LENGTH_SHORT).show();
+                            amount.setText("");
+                            note.setText("");
+                            category.setText("");
+                        }else{
+                            Log.d("insertTransaction",
+                                    "Expense did not insert, deleting transaction: " + transactionId
+                            );
+                            amount.setError("Field should be in correct format.");
+                            throw  new Exception("expense not inserted");
+
+                        }
+                    }catch (Exception e) {
                         transactionBuilder.delete()
                                 .one((int) transactionId)
                                 .execDelete();
                     }
+
                 }
 
             }else{
-                Toast.makeText(context, "Field is required!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Field is incorrect or is in incorrect format!", Toast.LENGTH_SHORT).show();
             }
         });
     }
