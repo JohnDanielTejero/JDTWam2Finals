@@ -4,22 +4,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.jdtwam2finals.dao.DbCon;
@@ -32,9 +29,6 @@ import com.example.jdtwam2finals.fragments.ExpenseFragment;
 import com.example.jdtwam2finals.fragments.IncomeFragment;
 import com.example.jdtwam2finals.fragments.TransactionFragment;
 import com.example.jdtwam2finals.utils.QueryBuilder;
-
-import java.text.ParseException;
-import java.util.List;
 
 public class AuthActivity extends AppCompatActivity {
 
@@ -153,6 +147,17 @@ public class AuthActivity extends AppCompatActivity {
                 Intent i = new Intent(this, MainActivity.class);
                 startActivity(i);
             });
+
+            PackageInfo pInfo;
+            try {
+                pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            String version = pInfo.versionName;
+            TextView versionNameTextView = dialogBinding.dialogVersionNumber;
+
+            versionNameTextView.setText("Ver. " + version);
 
             dialogBinding.dismissDialog.setOnClickListener(v -> dialog.dismiss());
 

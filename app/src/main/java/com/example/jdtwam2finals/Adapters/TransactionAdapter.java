@@ -66,8 +66,6 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionViewHold
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
         Transaction transaction = transactionList.get(position);
-
-        // Bind the transaction data to the ViewHolder here
         holder.bind(transaction, dbCon.getWritableDatabase());
     }
 

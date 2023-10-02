@@ -1,15 +1,22 @@
 package com.example.jdtwam2finals.fragments;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -17,14 +24,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.jdtwam2finals.Adapters.CalendarAdapter;
 import com.example.jdtwam2finals.Adapters.TransactionAdapter;
-import com.example.jdtwam2finals.R;
+import com.example.jdtwam2finals.DatePickerActivity;
 import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.ExpenseTable;
 import com.example.jdtwam2finals.dao.IncomeTable;
@@ -40,11 +49,13 @@ import com.example.jdtwam2finals.utils.QueryBuilder;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,8 +78,9 @@ public class TransactionFragment extends Fragment {
     private ImageButton prev, next;
     private TextView monthSpinner, expenses, income;
     private List<Transaction> transactionsList;
-    private Button export;
+    private Button export, viewMonthPicker;
     private LinearLayout incomeDisplay, expenseDisplay;
+    private LocalDate selectedDate;
     private static final String[] MONTHS = {
             "January",
             "February",
@@ -138,7 +150,6 @@ public class TransactionFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Calendar calendar = Calendar.getInstance();
         currentMonth = calendar.get(Calendar.MONTH);
-
         dbCon = DbCon.getInstance(context);
         sp = context.getSharedPreferences("login", Context.MODE_PRIVATE);
         next = b.next;
@@ -150,13 +161,15 @@ public class TransactionFragment extends Fragment {
         export = b.exportButton;
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
-
+        viewMonthPicker = b.monthPreview;
+        selectedDate = LocalDate.now();
         setMonthSpinner();
 
         prev.setOnClickListener(v -> {
             if (currentMonth == 0) {
                 return;
             }
+            selectedDate = selectedDate.minusMonths(1);
             --currentMonth;
             setMonthSpinner();
         });
@@ -165,6 +178,7 @@ public class TransactionFragment extends Fragment {
             if(currentMonth == MONTHS.length - 1){
                 return;
             }
+            selectedDate = selectedDate.plusMonths(1);
             ++currentMonth;
             setMonthSpinner();
         });
@@ -180,16 +194,27 @@ public class TransactionFragment extends Fragment {
                 }
             }
         });
+
+        viewMonthPicker.setOnClickListener(v -> {
+            if (selectedDate == null) {
+                return;
+            }
+            Intent intent = new Intent(getActivity(), DatePickerActivity.class);
+            intent.putExtra("month_display", selectedDate.toString());
+            intent.putExtra("month_spinner", MONTHS[currentMonth]);
+            startActivity(intent);
+        });
     }
 
-    private void setMonthSpinner(){
+    private void setMonthSpinner() {
         monthSpinner.setText(MONTHS[currentMonth]);
 
         Double getIncome = null;
         Double getExpense = null;
         ExecutorService e = Executors.newCachedThreadPool();
 
-        Future<Double> incomeAmount = e.submit(() -> {
+        List<Callable<Double>> tasks = new ArrayList<>();
+        tasks.add(() -> e.submit(() -> {
             int userId = sp.getInt("user", -1);
             QueryBuilder<Transaction> queryBuilder = new TransactionTable();
             queryBuilder.database(dbCon.getReadableDatabase());
@@ -208,9 +233,8 @@ public class TransactionFragment extends Fragment {
                 return sum;
             }
             return null;
-        });
-
-        Future<Double> expenseAmount = e.submit(() -> {
+        }).get());
+        tasks.add(() -> e.submit(() -> {
             int userId = sp.getInt("user", -1);
             QueryBuilder<Transaction> queryBuilder = new TransactionTable();
             queryBuilder.database(dbCon.getReadableDatabase());
@@ -229,7 +253,8 @@ public class TransactionFragment extends Fragment {
                 return sum;
             }
             return null;
-        });
+        }).get());
+
 
         Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
@@ -304,10 +329,10 @@ public class TransactionFragment extends Fragment {
         });
 
         try {
-            getIncome = incomeAmount.get();
-            getExpense = expenseAmount.get();
+            List<Future<Double>> results = e.invokeAll(tasks);
+            getIncome = results.get(0).get();
+            getExpense = results.get(1).get();
             transactionsList = (List<Transaction>) transactions.get();
-
             e.shutdown();
         } catch (ExecutionException ex) {
             throw new RuntimeException(ex);
@@ -332,18 +357,17 @@ public class TransactionFragment extends Fragment {
 
         tAdapter = new TransactionAdapter(context, transactionsList, false, () -> setMonthSpinner());
         transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
-
         transactionsDisplay.setAdapter(tAdapter);
     }
     public void deleteTransaction(Transaction t){
         if ("Expense".equals(t.getType())) {
-            QueryBuilder<Expense> exp = (QueryBuilder<Expense>) ExpenseTable.getAndSetInstance(new ExpenseTable());
+            QueryBuilder<Expense> exp =new ExpenseTable();
             exp.database(dbCon.getWritableDatabase());
             exp.delete()
                     .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
                     .execDelete();
         } else if ("Income".equals(t.getType())) {
-            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+            QueryBuilder<Income> inc = new IncomeTable();
             inc.database(dbCon.getWritableDatabase());
             inc.delete()
                     .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))
@@ -353,7 +377,7 @@ public class TransactionFragment extends Fragment {
             Log.d("ViewHolder", "Unrecognized Type");
         }
 
-        QueryBuilder<Transaction> transactQuery = (QueryBuilder<Transaction>) TransactionTable.getAndSetInstance(new TransactionTable());
+        QueryBuilder<Transaction> transactQuery =new TransactionTable();
         transactQuery.database(dbCon.getWritableDatabase());
         transactQuery
                 .delete()
@@ -364,5 +388,6 @@ public class TransactionFragment extends Fragment {
     public void displayClicked(String message){
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
+
 
 }

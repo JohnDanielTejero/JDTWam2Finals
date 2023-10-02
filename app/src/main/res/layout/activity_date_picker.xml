@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="?formBackground"
+    android:layout_height="match_parent"
+    tools:context=".DatePickerActivity">
+    <TextView
+        android:id="@+id/month_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="month"
+        android:textAllCaps="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf=" parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.01"
+        android:textColor="?colorPrimary"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        app:layout_constraintHorizontal_bias="0.5"/>
+
+    <LinearLayout
+        android:layout_marginHorizontal="10sp"
+        android:paddingHorizontal="10sp"
+        android:id="@+id/days_layout"
+        app:layout_constraintTop_toBottomOf="@id/month_title"
+        app:layout_constraintBottom_toTopOf="@id/date_display"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SUN"
+            android:textColor="?colorPrimary"
+            android:textAlignment="center"
+            android:background="@drawable/border_square_transparentbg"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TUE"
+            android:textColor="?colorPrimary"
+            android:textAlignment="center"
+            android:background="@drawable/border_square_transparentbg"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="WED"
+            android:textColor="?colorPrimary"
+            android:background="@drawable/border_square_transparentbg"
+            android:textAlignment="center"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="THU"
+            android:textColor="?colorPrimary"
+            android:background="@drawable/border_square_transparentbg"
+            android:textAlignment="center"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="FRI"
+            android:background="@drawable/border_square_transparentbg"
+            android:textColor="?colorPrimary"
+            android:textAlignment="center"
+            android:textSize="13sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/border_square_transparentbg"
+            android:text="SAT"
+            android:textColor="?colorPrimary"
+            android:textAlignment="center"
+            android:textSize="13sp"/>
+
+
+    </LinearLayout>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_margin="10sp"
+        android:id="@+id/date_display"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/days_layout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
