@@ -32,10 +32,14 @@ import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
 import com.example.jdtwam2finals.utils.Callback;
 import com.example.jdtwam2finals.utils.MonetaryFormat;
+import com.example.jdtwam2finals.utils.MonthSetter;
 import com.example.jdtwam2finals.utils.QueryBuilder;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class TransactionViewHolder extends RecyclerView.ViewHolder {
 
@@ -95,7 +99,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
             deleteButton.setVisibility(View.VISIBLE);
 
             deleteButton.setOnClickListener(v -> deleteTransaction(transaction, db));
-            editButton.setOnClickListener(v -> updateTransaction(transaction));
+            editButton.setOnClickListener(v -> updateTransaction(transaction, db));
 
         } else {
             editButton.setVisibility(View.GONE);
@@ -104,7 +108,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
     }
 
     @SuppressLint("SetTextI18n")
-    public void updateTransaction(Transaction t) {
+    public void updateTransaction(Transaction t, SQLiteDatabase db) {
         if (updateB.getRoot().getParent() != null) {
             ((ViewGroup) updateB.getRoot().getParent()).removeView(updateB.getRoot());
         }
@@ -142,6 +146,88 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
             }
 
             dateButton.setOnClickListener(v-> openDatePicker());
+
+            updateB.updateSubmit.setOnClickListener(v-> {
+                boolean amountIsSubmittable = true;
+                boolean noteIsSubmittable = true;
+                boolean categoryIsSubmittable = true;
+                String regex = "[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?";
+
+                if (updateB.updateAmount.getText().toString().isEmpty()){
+                    updateB.updateAmount.setError("Field is required!");
+                    amountIsSubmittable = false;
+                }
+
+                if(updateB.updateNote.getText().toString().isEmpty()){
+                    updateB.updateNote.setError("Field is required!");
+                    noteIsSubmittable = false;
+                }
+
+                if (updateB.updateCategory.getText().toString().isEmpty()){
+                    updateB.updateCategory.setError("Field is required!");
+                    categoryIsSubmittable = false;
+                }
+
+                if (!updateB.updateAmount.getText().toString().matches(regex)){
+                    updateB.updateAmount.setError("Field should be in correct format.");
+                    amountIsSubmittable = false;
+                }
+
+                if(t.getType() == "Income"){
+                    categoryIsSubmittable = true;
+                }
+                if (amountIsSubmittable && noteIsSubmittable && categoryIsSubmittable){
+                    QueryBuilder<Transaction> tb = new TransactionTable();
+                    tb.database(db);
+                    String inputDateStr = updateB.datePickerButton.getText().toString();
+                    Log.d("datepicker", updateB.datePickerButton.getText().toString());
+                    SimpleDateFormat inputDateFormat = new SimpleDateFormat("MMM d yyyy", Locale.ENGLISH);
+                    //SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US);
+                    SimpleDateFormat isoDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
+                    SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM", Locale.US);
+
+                    try {
+                        Date updatedDate = inputDateFormat.parse(inputDateStr);
+                        String monthName = monthFormat.format(updatedDate);
+                        String isoDateStr = isoDateFormat.format(updatedDate);
+                        tb.update(t.getTransactionId())
+                                .setNewColVal(TransactionTable.COLUMN_DATE, isoDateStr)
+                                .setNewColVal(TransactionTable.COLUMN_MONTH, monthName)
+                                .execUpdate();
+                    } catch (ParseException e) {
+                        Log.d("datepicker", e.getLocalizedMessage());
+                        throw new RuntimeException(e);
+                    }
+
+                    if (t.getType().equals("Income")){
+                        QueryBuilder<Income> q = new IncomeTable();
+                        q.database(db);
+
+                        q.update(t.getIncome().getIncomeId())
+                                .setNewColVal(IncomeTable.COLUMN_AMOUNT, updateB.updateAmount.getText().toString())
+                                .setNewColVal(IncomeTable.COLUMN_NOTE, updateB.updateNote.getText().toString())
+                                .execUpdate();
+
+
+                    }else if (t.getType().equals("Expense")){
+                        QueryBuilder<Expense> q = new ExpenseTable();
+                        q.database(db);
+                        q.update(t.getExpense().getExpenseId())
+                                .setNewColVal(ExpenseTable.COLUMN_AMOUNT, updateB.updateAmount.getText().toString())
+                                .setNewColVal(ExpenseTable.COLUMN_NOTE, updateB.updateNote.getText().toString())
+                                .setNewColVal(ExpenseTable.COLUMN_CATEGORY, updateB.updateCategory.getText().toString())
+                                .execUpdate();
+                        cb.execute();
+                        dialog.dismiss();
+                    }else{
+                        Toast.makeText(context, "Type does not exist!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }else{
+                    Toast.makeText(context, "Field is incorrect or is in incorrect format!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            });
 
             dialog.show();
             dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);

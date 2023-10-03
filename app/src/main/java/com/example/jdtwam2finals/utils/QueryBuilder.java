@@ -10,6 +10,6 @@ import android.database.sqlite.SQLiteDatabase;
  * Assign T as your Model
  * @param <T> - Model
  */
-public interface QueryBuilder<T> extends DeleteQueryBuilder<T>, InsertQueryBuilder<T>, SelectQueryBuilder<T> {
+public interface QueryBuilder<T> extends DeleteQueryBuilder<T>, InsertQueryBuilder<T>, SelectQueryBuilder<T>, UpdateQueryBuilder<T> {
 
 }

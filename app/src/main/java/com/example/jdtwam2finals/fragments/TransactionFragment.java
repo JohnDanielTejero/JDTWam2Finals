@@ -1,6 +1,5 @@
 package com.example.jdtwam2finals.fragments;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,6 +35,7 @@ import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
 import com.example.jdtwam2finals.utils.ExportDataToCsv;
 import com.example.jdtwam2finals.utils.MonetaryFormat;
+import com.example.jdtwam2finals.utils.MonthSetter;
 import com.example.jdtwam2finals.utils.QueryBuilder;
 
 import java.text.ParseException;
@@ -72,6 +72,10 @@ public class TransactionFragment extends Fragment {
     private Button export;
     private LinearLayout incomeDisplay, expenseDisplay;
     private LocalDate selectedDate;
+    private static final int ITEMS_PER_PAGE = 5;
+    private Integer offset_to_apply = null;
+    private Integer pagination = 0;
+    private boolean isLastPage = false;
     private static final String[] MONTHS = {
             "January",
             "February",
@@ -153,6 +157,7 @@ public class TransactionFragment extends Fragment {
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
         selectedDate = LocalDate.now();
+        offset_to_apply = 0;
         setMonthSpinner();
 
         prev.setOnClickListener(v -> {
@@ -161,6 +166,9 @@ public class TransactionFragment extends Fragment {
             }
             selectedDate = selectedDate.minusMonths(1);
             --currentMonth;
+            offset_to_apply = 0;
+            transactionsList = null;
+            pagination = 0;
             setMonthSpinner();
         });
 
@@ -170,6 +178,9 @@ public class TransactionFragment extends Fragment {
             }
             selectedDate = selectedDate.plusMonths(1);
             ++currentMonth;
+            offset_to_apply = 0;
+            pagination = 0;
+            transactionsList = null;
             setMonthSpinner();
         });
 
@@ -194,11 +205,28 @@ public class TransactionFragment extends Fragment {
             intent.putExtra("month_spinner", MONTHS[currentMonth]);
             startActivity(intent);
         });
+
+        b.transactionNestedView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            int maxScrollY = b.transactionNestedView.getChildAt(0).getMeasuredHeight() - b.transactionNestedView.getMeasuredHeight();
+            int scrollY = b.transactionNestedView.getScrollY();
+            int threshold = 100;
+
+            if (transactionsList != null && transactionsList.size() >= ITEMS_PER_PAGE) {
+                if (maxScrollY - scrollY <= threshold) {
+
+                    if (!isLastPage) {
+                        setMonthSpinner();
+                    }
+                }
+            }
+        });
     }
 
     private void setMonthSpinner() {
         monthSpinner.setText(MONTHS[currentMonth]);
-
+        offset_to_apply = pagination * ITEMS_PER_PAGE;
+        pagination++;
+        isLastPage = false;
         Double getIncome = null;
         Double getExpense = null;
         ExecutorService e = Executors.newCachedThreadPool();
@@ -218,7 +246,7 @@ public class TransactionFragment extends Fragment {
                     .exec();
             if (cursor != null && cursor.getCount() > 0){
                 cursor.moveToFirst();
-                Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
                 cursor.close();
                 return sum;
             }
@@ -238,7 +266,7 @@ public class TransactionFragment extends Fragment {
                     .exec();
             if (cursor != null && cursor.getCount() > 0){
                 cursor.moveToFirst();
-                Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
                 cursor.close();
                 return sum;
             }
@@ -254,16 +282,20 @@ public class TransactionFragment extends Fragment {
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                     .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
+                    //.relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                    //.relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
                     .orderBy(0)
+                    .limitBy(ITEMS_PER_PAGE)
+                    .offset(offset_to_apply)
                     .exec();
+
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     try {
-                        @SuppressLint("Range") long id = cursor.getLong(cursor.getColumnIndex(TransactionTable.COLUMN_TRANSACTION_ID));
-                        @SuppressLint("Range") String month = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_MONTH));
-                        @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_TYPE));
-                        Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-                                .parse(cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE)));
+                        long id = cursor.getLong(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_TRANSACTION_ID));
+                        String month = cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_MONTH));
+                        String type = cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_TYPE));
+                        Date date = MonthSetter.parseDate((cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE))));
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
@@ -306,8 +338,6 @@ public class TransactionFragment extends Fragment {
                             throw new RuntimeException("This type does not exist");
                         }
                         currentTransaction.add(t);
-                    } catch (ParseException ex) {
-                        throw new RuntimeException(ex);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -322,7 +352,15 @@ public class TransactionFragment extends Fragment {
             List<Future<Double>> results = e.invokeAll(tasks);
             getIncome = results.get(0).get();
             getExpense = results.get(1).get();
-            transactionsList = (List<Transaction>) transactions.get();
+            if (transactionsList == null) {
+               transactionsList = (List<Transaction>) transactions.get();
+            }else{
+                if (transactions.get().size() > 0){
+                    transactionsList.addAll((List<Transaction>) transactions.get());
+                }else{
+                    isLastPage = true;
+                }
+            }
             e.shutdown();
         } catch (ExecutionException ex) {
             throw new RuntimeException(ex);
@@ -378,6 +416,5 @@ public class TransactionFragment extends Fragment {
     public void displayClicked(String message){
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
-
 
 }

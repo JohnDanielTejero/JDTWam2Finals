@@ -61,14 +61,6 @@ public interface SQLiteQueryService<T> {
     public SQLiteQueryService<T> orderBy(int i);
 
     /**
-     * Sets the Operator to UPDATE
-     *
-     * @param id - primary key of record
-     * @return QueryBuilder instance
-     */
-    public SQLiteQueryService<T> update(Integer id);
-
-    /**
      * Limits the number or records to be retrieved
      *
      * @param num - amount of records to be retrieved
@@ -76,6 +68,13 @@ public interface SQLiteQueryService<T> {
      */
     public SQLiteQueryService<T> limitBy(int num);
 
+    /**
+     * Offsets the records to be retrieved
+     *
+     * @param num - amount of records to be skipped
+     * @return QueryBuilder instance
+     */
+    public SQLiteQueryService<T> offset(int num);
 
     /**
      * Returns the sum of specific field.
@@ -111,4 +110,11 @@ public interface SQLiteQueryService<T> {
      * Table extends the abstract class that implements the interface
      */
     public void execDelete();
+
+    /**
+     * Executes the SQL query for update operator:
+     *
+     */
+    public void execUpdate();
+
 }

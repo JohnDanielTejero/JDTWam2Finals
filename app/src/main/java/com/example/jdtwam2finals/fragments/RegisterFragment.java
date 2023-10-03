@@ -110,7 +110,7 @@ public class RegisterFragment extends Fragment {
 
                 try{
                     User createUser = new User(username.getText().toString(), password.getText().toString());
-                    QueryBuilder<User> query = (QueryBuilder<User>) UserTable.getAndSetInstance(new UserTable());
+                    QueryBuilder<User> query = new UserTable();
                     query.database(dbCon.getReadableDatabase());
                     Cursor cursor = query
                             .find()

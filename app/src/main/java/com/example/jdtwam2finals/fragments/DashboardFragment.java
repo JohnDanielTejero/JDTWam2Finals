@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -26,6 +27,7 @@ import com.example.jdtwam2finals.dao.IncomeTable;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.dto.Expense;
 import com.example.jdtwam2finals.dto.Income;
+import com.example.jdtwam2finals.utils.MonthSetter;
 import com.example.jdtwam2finals.utils.QueryBuilder;
 import com.example.jdtwam2finals.dao.TransactionTable;
 import com.example.jdtwam2finals.databinding.FragmentDashboardBinding;
@@ -122,49 +124,55 @@ public class DashboardFragment extends Fragment {
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
 
-        Double getIncome = null;
-        Double getExpense = null;
-        ExecutorService e = Executors.newCachedThreadPool();
-        Future<Double> incomeAmount = e.submit(() -> {
+        new FetchTransactionsTask().execute();
+    }
+
+    public void displayClicked(String message){
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private class FetchTransactionsTask extends AsyncTask<Void, Void, Void> {
+        private Double getIncome;
+        private Double getExpense;
+        private List<Transaction> transactions;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
             int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
-            Cursor cursor = queryBuilder
+            // Fetch income amount
+            QueryBuilder<Transaction> incomeQueryBuilder = new TransactionTable(dbCon.getReadableDatabase());
+            Cursor incomeCursor = incomeQueryBuilder
                     .find()
                     .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .where(TransactionTable.COLUMN_TYPE, "=",  "Income")
+                    .where(TransactionTable.COLUMN_TYPE, "=", "Income")
                     .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
                     .sum(IncomeTable.COLUMN_AMOUNT)
                     .exec();
-            if (cursor != null && cursor.getCount() > 0){
-                cursor.moveToFirst();
-                Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
-                return sum;
+            if (incomeCursor != null && incomeCursor.getCount() > 0) {
+                incomeCursor.moveToFirst();
+                getIncome = (double) incomeCursor.getLong(incomeCursor.getColumnIndexOrThrow("SUM(amount)"));
+                incomeCursor.close();
+            } else {
+                getIncome = null;
             }
-            return null;
-        });
 
-        Future<Double> expenseAmount = e.submit(() -> {
-            int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
-            Cursor cursor = queryBuilder
+            QueryBuilder<Transaction> expenseQueryBuilder = new TransactionTable(dbCon.getReadableDatabase());
+            Cursor expenseCursor = expenseQueryBuilder
                     .find()
                     .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .where(TransactionTable.COLUMN_TYPE, "=",  "Expense")
+                    .where(TransactionTable.COLUMN_TYPE, "=", "Expense")
                     .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
                     .sum(ExpenseTable.COLUMN_AMOUNT)
                     .exec();
-            if (cursor != null && cursor.getCount() > 0){
-                cursor.moveToFirst();
-                Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
-                return sum;
+            if (expenseCursor != null && expenseCursor.getCount() > 0) {
+                expenseCursor.moveToFirst();
+                getExpense = (double) expenseCursor.getLong(expenseCursor.getColumnIndexOrThrow("SUM(amount)"));
+                expenseCursor.close();
+            } else {
+                getExpense = null;
             }
-            return null;
-        });
 
-        @SuppressLint("Range") Future<List<?>> transactions = e.submit(() -> {
-            int userId = sp.getInt("user", -1);
-
-            List<Transaction> currentTransaction = new ArrayList<>();
+            transactions = new ArrayList<>();
             QueryBuilder<Transaction> query = new TransactionTable();
             query.database(dbCon.getReadableDatabase());
 
@@ -179,8 +187,9 @@ public class DashboardFragment extends Fragment {
                         @SuppressLint("Range") long id = cursor.getLong(cursor.getColumnIndex(TransactionTable.COLUMN_TRANSACTION_ID));
                         @SuppressLint("Range") String month = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_MONTH));
                         @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_TYPE));
-                        Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-                                .parse(cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE)));
+                        //Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
+                        //Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                        Date date = MonthSetter.parseDate((cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE))));
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
@@ -203,7 +212,7 @@ public class DashboardFragment extends Fragment {
                             }
 
                         } else if ("Income".equals(t.getType())) {
-                            QueryBuilder<Income> inc = (QueryBuilder<Income>) IncomeTable.getAndSetInstance(new IncomeTable());
+                            QueryBuilder<Income> inc = new IncomeTable();
                             inc.database(dbCon.getReadableDatabase());
                             Cursor incCur = inc.find()
                                     .where(IncomeTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
@@ -222,59 +231,41 @@ public class DashboardFragment extends Fragment {
                         }else{
                             throw new RuntimeException("This type does not exist");
                         }
-                        currentTransaction.add(t);
-                    } catch (ParseException ex) {
-                        throw new RuntimeException(ex);
+                        transactions.add(t);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
                 }
                 cursor.close();
-                return currentTransaction;
+                Double balance = getIncome != null && getExpense != null ? getIncome - getExpense : null;
+                String moneyPrefix = "Php ";
+                total_expense.setText(moneyPrefix.concat((getExpense != null ?
+                        MonetaryFormat.formatCurrencyWithTrim(getExpense)
+                        : "0")));
+
+                total_income.setText(moneyPrefix.concat(getIncome != null ?
+                        MonetaryFormat.formatCurrencyWithTrim(getIncome)
+                        : MonetaryFormat.formatCurrencyWithTrim(0)));
+
+                total_balance.setText(moneyPrefix.concat((balance != null ?
+                        MonetaryFormat.formatCurrencyWithTrim(balance)
+                        : "0")));
+
+                t = transactions;
+                balanceDisplay.setOnClickListener(v -> displayClicked("Total Balance: " + balance));
+                Double finalGetExpense = getExpense;
+                expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense: " + finalGetExpense));
+                Double finalGetIncome = getIncome;
+                incomeDisplay.setOnClickListener(v -> displayClicked("Total Income: " + finalGetIncome));
+
+                tAdapter = new TransactionAdapter(context, t, true, null);
+                b.recentTransactions.setLayoutManager(new LinearLayoutManager(context));
+                b.recentTransactions.setAdapter(tAdapter);
+                Log.d("money", getIncome.toString());
+
             }
             return null;
-        });
-
-        try {
-            getExpense = expenseAmount.get();
-            getIncome = incomeAmount.get();
-            t = (List<Transaction>) transactions.get();
-        } catch (ExecutionException ex) {
-            throw new RuntimeException(ex);
-        } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
-        }catch (Exception ex) {
-            Log.d("message", ex.getMessage());
         }
-
-        e.shutdown();
-        Double balance = getIncome != null && getExpense != null ? getIncome - getExpense : null;
-        String moneyPrefix = "Php ";
-        total_expense.setText(moneyPrefix.concat((getExpense != null ?
-                MonetaryFormat.formatCurrencyWithTrim(getExpense)
-                : "0")));
-
-        total_income.setText(moneyPrefix.concat(getIncome != null ?
-                MonetaryFormat.formatCurrencyWithTrim(getIncome)
-                : MonetaryFormat.formatCurrencyWithTrim(0)));
-
-        total_balance.setText(moneyPrefix.concat((balance != null ?
-                MonetaryFormat.formatCurrencyWithTrim(balance)
-                : "0")));
-
-        balanceDisplay.setOnClickListener(v -> displayClicked("Total Balance: " + balance));
-        Double finalGetExpense = getExpense;
-        expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense: " + finalGetExpense));
-        Double finalGetIncome = getIncome;
-        incomeDisplay.setOnClickListener(v -> displayClicked("Total Income: " + finalGetIncome));
-
-        tAdapter = new TransactionAdapter(context, t, true, null);
-        b.recentTransactions.setLayoutManager(new LinearLayoutManager(context));
-        b.recentTransactions.setAdapter(tAdapter);
-        Log.d("money", getIncome.toString());
     }
 
-    public void displayClicked(String message){
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-    }
 }

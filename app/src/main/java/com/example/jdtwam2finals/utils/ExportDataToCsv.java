@@ -78,8 +78,7 @@ public class ExportDataToCsv {
                         @SuppressLint("Range") long tId = forTransactions.getLong(forTransactions.getColumnIndex(TransactionTable.COLUMN_TRANSACTION_ID));
                         @SuppressLint("Range") String month = forTransactions.getString(forTransactions.getColumnIndex(TransactionTable.COLUMN_MONTH));
                         @SuppressLint("Range") String type = forTransactions.getString(forTransactions.getColumnIndex(TransactionTable.COLUMN_TYPE));
-                        Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-                                .parse(forTransactions.getString(forTransactions.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE)));
+                        Date date = MonthSetter.parseDate((forTransactions.getString(forTransactions.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE))));
                         Transaction t = new Transaction((int) tId, type, date, month, id);
 
                         if ("Expense".equals(t.getType())){
