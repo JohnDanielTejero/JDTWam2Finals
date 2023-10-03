@@ -282,9 +282,7 @@ public class TransactionFragment extends Fragment {
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                     .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                    //.relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
-                    //.relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
-                    .orderBy(0)
+                    .orderByDate(false, TransactionTable.COLUMN_DATE)
                     .limitBy(ITEMS_PER_PAGE)
                     .offset(offset_to_apply)
                     .exec();

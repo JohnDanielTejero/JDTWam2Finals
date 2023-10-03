@@ -178,7 +178,8 @@ public class DashboardFragment extends Fragment {
 
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .orderBy(0)
+                    //.orderBy(0)
+                    .orderByDate(false, TransactionTable.COLUMN_DATE)
                     .limitBy(5)
                     .exec();
             if (cursor != null) {

@@ -19,6 +19,8 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     protected Map<String, String> conditions = new HashMap<>();
     protected Map<String, String> table_joins = new HashMap<>();
     protected Map<String, String> column_value_update = new HashMap<>();
+    protected String column_date;
+    protected Boolean orderByDateAsc = null;
     protected String selectedTable;
     protected String operation;
     protected Integer limitBy;
@@ -35,6 +37,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     private static final String COUNT_CLAUSE = " COUNT";
     private static final String SUM_CLAUSE = " SUM";
     private static final String OFFSET_CLAUSE =  " OFFSET ";
+
 
     public QueryBuilderImpl() {
 
@@ -219,9 +222,17 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 Log.d("sqlQuery", query.toString());
             }
 
-            query.append(" ORDER BY ");
-            query.append(orderBy);
-            query.append((orderByAsc == true ? " ASC " : " DESC "));
+            if(orderByDateAsc != null){
+                query.append(" ORDER BY ");
+                query.append("strftime('%Y-%m-%d', datetime(" + column_date + ", 'unixepoch')) ");
+                query.append((orderByDateAsc ? " ASC " : " DESC "));
+                query.append(orderByAsc ? ", 1 ASC " : ", 1 DESC ");
+            }else{
+                query.append(" ORDER BY ");
+                query.append(orderBy);
+                query.append((orderByAsc ? " ASC " : " DESC "));
+
+            }
 
             if (limitBy != null) {
                 query.append(LIMIT_CLAUSE + limitBy);
@@ -303,5 +314,12 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
         }
         instance = null;
         return null;
+    }
+
+    @Override
+    public SQLiteQueryService orderByDate(boolean order, String dateColumn) {
+        this.orderByDateAsc = order;
+        this.column_date = dateColumn;
+        return this;
     }
 }

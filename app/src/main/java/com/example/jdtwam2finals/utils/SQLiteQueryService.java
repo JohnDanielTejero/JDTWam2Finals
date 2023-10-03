@@ -59,7 +59,13 @@ public interface SQLiteQueryService<T> {
      * @return QueryBuilder instance
      */
     public SQLiteQueryService<T> orderBy(int i);
-
+    /**
+     * Sets the order of table by Date
+     *
+     * @param order - true for ASC, false for DESC
+     * @return QueryBuilder instance
+     */
+    public SQLiteQueryService<T> orderByDate(boolean order, String dateColumn);
     /**
      * Limits the number or records to be retrieved
      *
@@ -104,7 +110,7 @@ public interface SQLiteQueryService<T> {
      *
      * Usage:
      * QueryBuilder<T> query = new Table(db.getWriteableDatabase());
-     * Cursor cursor = query.delete().one(id).execDelete();
+     * query.delete().one(id).execDelete();
      *
      * Whereas:
      * Table extends the abstract class that implements the interface
@@ -113,7 +119,9 @@ public interface SQLiteQueryService<T> {
 
     /**
      * Executes the SQL query for update operator:
-     *
+     * Usage:
+     * QueryBuilder<T> query = new Table(db.getWriteableDatabase());
+     * query.update(id).setColVal(ColumnName, Value).execUpdate();
      */
     public void execUpdate();
 
