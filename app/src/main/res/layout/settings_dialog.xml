@@ -151,6 +151,7 @@
             android:text="Ver. 1.0.0"
             android:layout_marginStart="5sp"
             android:textColor="?customTitleColor"
+            android:textAllCaps="true"
             app:layout_constraintTop_toBottomOf="@id/dialog_version_header"/>
         <TextView
             android:id="@+id/dialog_contact_support"

@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.example.jdtwam2finals.dto.Expense;
 import com.example.jdtwam2finals.utils.QueryBuilder;
 
 import java.util.ArrayList;
@@ -17,29 +18,42 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     public static final Integer DESC = 0;
     protected Map<String, String> conditions = new HashMap<>();
     protected Map<String, String> table_joins = new HashMap<>();
+    protected Map<String, String> column_value_update = new HashMap<>();
+    protected String column_date;
+    protected Boolean orderByDateAsc = null;
     protected String selectedTable;
     protected String operation;
     protected Integer limitBy;
+    protected String date_comparator;
     private Boolean isCount = false;
     private String sumOfColumn = null;
-
-    public QueryBuilderImpl(SQLiteDatabase db) {
-        this.database(db);
-    }
-
+    private static QueryBuilder instance = null;
     private String orderBy = "1";
     private boolean orderByAsc = false;
+    private String column_date_selection;
+    private Integer offset = null;
     private static final String WHERE_CLAUSE = " WHERE ";
     private static final String SELECT_ALL_COLUMN = " * ";
     private static final String LIMIT_CLAUSE = " LIMIT ";
     private static final String FROM_CLAUSE = " FROM ";
     private static final String COUNT_CLAUSE = " COUNT";
     private static final String SUM_CLAUSE = " SUM";
+    private static final String OFFSET_CLAUSE =  " OFFSET ";
 
     public QueryBuilderImpl() {
 
     }
 
+    public QueryBuilderImpl(SQLiteDatabase db) {
+        this.database(db);
+    }
+
+    public static synchronized QueryBuilder<?> getAndSetInstance(QueryBuilder<?> setInstance){
+        if (instance == null){
+            instance = setInstance;
+        }
+        return instance;
+    }
     @Override
     public QueryBuilder<T> database(SQLiteDatabase db) {
         this.db = db;
@@ -74,6 +88,12 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     }
 
     @Override
+    public SQLiteQueryService offset(int num) {
+        this.offset = num;
+        return this;
+    }
+
+    @Override
     public QueryBuilder<T> relation(String foreignTableName, String foreignKey, String refTableName, String refKey) {
         this.table_joins.put(foreignTableName + "." + foreignKey, refTableName + "." + refKey);
         return this;
@@ -88,14 +108,66 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     }
 
     @Override
+    public QueryBuilder whereDate(String dateAsString, String column_date_selection) {
+        this.date_comparator = dateAsString;
+        this.column_date_selection = column_date_selection;
+        return this;
+    }
+
+    @Override
     public QueryBuilder<T> count() {
         this.isCount = true;
         return this;
     }
 
     @Override
+    public UpdateQueryBuilder<T> setNewColVal(String column, String newVal) {
+        column_value_update.put(column, newVal);
+        return this;
+    }
+
+    @Override
+    public void execUpdate() {
+        try{
+            StringBuilder query = new StringBuilder(this.operation);
+            query.append(" " + this.selectedTable + " SET ");
+            ArrayList<Object> values = new ArrayList<>();
+            if (!column_value_update.isEmpty()) {
+                boolean isFirst = true;
+                for (Map.Entry<String, String> entry : column_value_update.entrySet()) {
+                    if (!isFirst) {
+                        query.append(", "); // Add a comma for multiple updates
+                    } else {
+                        isFirst = false;
+                    }
+                    query.append(entry.getKey()).append(" = ?");
+                    values.add(entry.getValue());
+                }
+            } else {
+                throw new IllegalStateException("No columns to update.");
+            }
+
+            if (this.conditions.size() != 0){
+                String[] formatCondition = formatWhereCondition().split(":");
+                String[] conditionArray = formatCondition[1].split(",");
+                values.addAll(Arrays.asList(conditionArray));
+                query.append(formatCondition[0].toString());
+                //Log.d("sqlQuery", query.toString());
+            }
+
+
+            Log.d("sqlQuery", query.toString());
+            db.execSQL(query.toString(), values.toArray());
+            instance = null;
+            //"UPDATE table_name SET column1 = 'new_value' WHERE condition";
+        }catch (Exception e) {
+            Log.d("execution_db", e.getMessage());
+        }
+    }
+
+    @Override
     public void execDelete(){
-        Log.d("sqlQuery", "in exec");
+        Log.d("sqlQuery", "in exec delete");
         try{
             StringBuilder query = new StringBuilder(this.operation);
             ArrayList<String> condition_identifier = null;
@@ -110,6 +182,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 }
                 Log.d("sqlQuery", query.toString());
                 db.execSQL(query.toString(), condition_identifier.toArray(new String[condition_identifier.size()]));
+                instance = null;
             }else{
                 throw new Exception("Query cannot be processed");
             }
@@ -126,61 +199,87 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
 
     @Override
     public Cursor exec() {
-        Log.d("sqlQuery", "in exec");
+        Log.d("sqlQuery", "in exec Select");
         try{
             StringBuilder query = new StringBuilder(this.operation);
             ArrayList<String> condition_identifier = null;
+            query.append(SELECT_ALL_COLUMN);
+            query.append(FROM_CLAUSE + this.selectedTable);
 
-            if (this.operation.equals("SELECT")){
-                query.append(SELECT_ALL_COLUMN);
+            if (isCount) {
+                query = new StringBuilder(this.operation + COUNT_CLAUSE + "(" + SELECT_ALL_COLUMN + ")");
                 query.append(FROM_CLAUSE + this.selectedTable);
+            }
 
-                if (isCount) {
-                    query = new StringBuilder(this.operation + COUNT_CLAUSE + "(" + SELECT_ALL_COLUMN + ")");
-                    query.append(FROM_CLAUSE + this.selectedTable);
+            if (sumOfColumn != null){
+                query = new StringBuilder(this.operation + SUM_CLAUSE + "(" + sumOfColumn + ")");
+                query.append(FROM_CLAUSE + this.selectedTable);
+                //Log.d("sqlQuery", query.toString());
+            }
+            if(this.table_joins.size() != 0){
+                String joins = formatTableJoins();
+                query.append(joins);
+                //Log.d("sqlQuery", query.toString());
+            }
+
+            if (this.conditions.size() != 0){
+                String[] formatCondition = formatWhereCondition().split(":");
+                String[] conditionArray = formatCondition[1].split(",");
+                condition_identifier = new ArrayList<>(Arrays.asList(conditionArray));
+                query.append(formatCondition[0].toString());
+                //Log.d("sqlQuery", query.toString());
+            }
+
+            if (this.date_comparator != null) {
+                StringBuilder date_selector = new StringBuilder();
+                if (this.conditions.size() == 0){
+                    date_selector.append(WHERE_CLAUSE);
+                }else{
+                    date_selector.append(" AND ");
                 }
+                date_selector.append("strftime('%Y-%m-%d', " + column_date_selection + ") = ?");
+                //date_selector.append("strftime('%Y-%m-%d', datetime(" + column_date_selection + ",'unixepoch')) = ? ");
+                //date_selector.append(column_date_selection + " =? ");
+                //date_selector.append("CAST(strftime('%Y-%m-%d', " + column_date_selection + "/1000, unixepoch)) AS TEXT) = ? ");
+                query.append(date_selector);
 
-                if (sumOfColumn != null){
-                    query = new StringBuilder(this.operation + SUM_CLAUSE + "(" + sumOfColumn + ")");
-                    query.append(FROM_CLAUSE + this.selectedTable);
-                    Log.d("sqlQuery", query.toString());
-                }
-                if(this.table_joins.size() != 0){
-                    String joins = formatTableJoins();
-                    query.append(joins);
-                    Log.d("sqlQuery", query.toString());
-                }
+                Log.d("sqlQuery", date_comparator);
+                condition_identifier.add(date_comparator);
+            }
 
-                if (this.conditions.size() != 0){
-                    String[] formatCondition = formatWhereCondition().split(":");
-                    String[] conditionArray = formatCondition[1].split(",");
-                    condition_identifier = new ArrayList<>(Arrays.asList(conditionArray));
-                    query.append(formatCondition[0].toString());
-                    Log.d("sqlQuery", query.toString());
-
-                }
-
+            if(orderByDateAsc != null){
+                query.append(" ORDER BY ");
+                query.append("strftime('%Y-%m-%d', datetime(strftime('%s'," + column_date + "), 'unixepoch')) ");
+                query.append((orderByDateAsc ? " ASC " : " DESC "));
+                query.append(orderByAsc ? ", 1 ASC " : ", 1 DESC ");
+            }else{
                 query.append(" ORDER BY ");
                 query.append(orderBy);
-                query.append((orderByAsc == true ? " ASC " : " DESC "));
-
-                if (limitBy != null) {
-                    query.append(LIMIT_CLAUSE + limitBy);
-                }
-
-            }else{
-                throw new Exception("Query cannot be processed");
+                query.append((orderByAsc ? " ASC " : " DESC "));
             }
+
+            if (limitBy != null) {
+                query.append(LIMIT_CLAUSE + limitBy);
+            }
+
+            if (offset != null) {
+                query.append(OFFSET_CLAUSE + offset);
+                //Log.d("sqlQuery", offset.toString());
+            }
+            Log.d("sqlQuery", condition_identifier.toString());
             Log.d("sqlQuery", query.toString());
-            return this.db.rawQuery(
+            Cursor cursor = this.db.rawQuery(
                     query.toString(),
                     condition_identifier != null ? condition_identifier
                             .toArray(new String[condition_identifier.size()])
                             : null);
+            instance = null;
+            return cursor;
 
         }catch(Exception e){
             Log.d("execution_db", e.getMessage());
         }
+        instance = null;
         return null;
     }
 
@@ -191,7 +290,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
      */
     private String formatTableJoins(){
         if(this.table_joins.size() != 0){
-            Log.d("sqlQuery", "in table joins");
+            //Log.d("sqlQuery", "in table joins");
 
             StringBuilder joins = new StringBuilder();
 
@@ -204,7 +303,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 joins.append(" ON ");
                 joins.append(foreignKey + " = " + referenceKey);
             }
-            Log.d("sqlQuery", joins.toString());
+            //Log.d("sqlQuery", joins.toString());
             return joins.toString();
         }
         return null;
@@ -218,7 +317,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     private String formatWhereCondition(){
         if (this.conditions.size() != 0) {
 
-            String extractedConditions = WHERE_CLAUSE;
+            String extractedColumn = WHERE_CLAUSE;
             String extractedIdentifiers = "";
 
             boolean isLastEntry = false;
@@ -226,16 +325,25 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
 
             for (Map.Entry<String, String> entry : conditions.entrySet()) {
                 isLastEntry = ++counter == conditions.size();
-                extractedConditions += entry.getKey()  + "?";
+                extractedColumn += entry.getKey()  + "?";
                 extractedIdentifiers += entry.getValue();
 
                 if(!isLastEntry){
-                    extractedConditions += " AND ";
+                    extractedColumn += " AND ";
                     extractedIdentifiers += ",";
                 }
             }
-            return extractedConditions + ":" + extractedIdentifiers;
+            instance = null;
+            return extractedColumn + ":" + extractedIdentifiers;
         }
+        instance = null;
         return null;
+    }
+
+    @Override
+    public SQLiteQueryService orderByDate(boolean order, String dateColumn) {
+        this.orderByDateAsc = order;
+        this.column_date = dateColumn;
+        return this;
     }
 }

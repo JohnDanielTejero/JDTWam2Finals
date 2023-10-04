@@ -4,28 +4,25 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.UserTable;
 import com.example.jdtwam2finals.databinding.ActivityAuthBinding;
-import com.example.jdtwam2finals.databinding.BottomDialogBinding;
+import com.example.jdtwam2finals.databinding.SettingsDialogBinding;
 import com.example.jdtwam2finals.dto.User;
 import com.example.jdtwam2finals.fragments.DashboardFragment;
 import com.example.jdtwam2finals.fragments.ExpenseFragment;
@@ -33,22 +30,19 @@ import com.example.jdtwam2finals.fragments.IncomeFragment;
 import com.example.jdtwam2finals.fragments.TransactionFragment;
 import com.example.jdtwam2finals.utils.QueryBuilder;
 
-import java.text.ParseException;
-import java.util.List;
-
 public class AuthActivity extends AppCompatActivity {
 
     private ActivityAuthBinding b;
     private int selectedFragmentId;
     private SharedPreferences sp;
     private DbCon dbCon;
-    private BottomDialogBinding dialogBinding;
+    private SettingsDialogBinding dialogBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
          b = ActivityAuthBinding.inflate(getLayoutInflater());
-         dialogBinding = BottomDialogBinding.inflate(getLayoutInflater());
+         dialogBinding = SettingsDialogBinding.inflate(getLayoutInflater());
          dbCon = DbCon.getInstance(this);
         setContentView(b.getRoot());
 
@@ -153,6 +147,17 @@ public class AuthActivity extends AppCompatActivity {
                 Intent i = new Intent(this, MainActivity.class);
                 startActivity(i);
             });
+
+            PackageInfo pInfo;
+            try {
+                pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            String version = pInfo.versionName;
+            TextView versionNameTextView = dialogBinding.dialogVersionNumber;
+
+            versionNameTextView.setText("Ver. " + version);
 
             dialogBinding.dismissDialog.setOnClickListener(v -> dialog.dismiss());
 

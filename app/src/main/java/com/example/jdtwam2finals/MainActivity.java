@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.databinding.ActivityMainBinding;
 
 import java.util.concurrent.ExecutionException;

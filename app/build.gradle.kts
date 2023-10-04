@@ -12,10 +12,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.jdtwam2finals"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2;0;0
+        versionName = "2.0.0 dev version"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

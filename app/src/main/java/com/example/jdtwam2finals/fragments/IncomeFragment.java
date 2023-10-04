@@ -98,6 +98,7 @@ public class IncomeFragment extends Fragment {
         submit = b.incomeSubmit;
         amount = b.incomeAmount;
         note = b.incomeNote;
+        String regex = "[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?";
 
         submit.setOnClickListener(v -> {
 
@@ -114,35 +115,48 @@ public class IncomeFragment extends Fragment {
                 noteIsSubmittable = false;
             }
 
+            if (!amount.getText().toString().matches(regex)){
+                amount.setError("Field should be in correct format.");
+                amountIsSubmittable = false;
+            }
+
+
             if (amountIsSubmittable && noteIsSubmittable){
 
-                QueryBuilder<Transaction> transactionBuilder = new TransactionTable(dbCon.getWritableDatabase());
+                QueryBuilder<Transaction> transactionBuilder = new TransactionTable();
+                transactionBuilder.database(dbCon.getWritableDatabase());
                 int userId = sp.getInt("user", -1);
                 long transactionId = transactionBuilder.insert(new Transaction("Income", new Date(), MonthSetter.currentMonth(), userId));
                 if (transactionId != -1){
-                    Log.d("insertTransaction", "Transaction successfully inserted: " + transactionId);
-                    QueryBuilder<Income> incomeQueryBuilder = new IncomeTable(dbCon.getWritableDatabase());
+                    try {
+                        Log.d("insertTransaction", "Transaction successfully inserted: " + transactionId);
+                        QueryBuilder<Income> incomeQueryBuilder = new IncomeTable(dbCon.getWritableDatabase());
 
-                    long incomeId = incomeQueryBuilder.insert(new Income(
-                            Double.parseDouble(amount.getText().toString()),
-                            note.getText().toString(),
-                            (int) transactionId
-                            ));
-                    if (incomeId != -1){
-                        Log.d("insertTransaction", "Income inserted: " + incomeId);
-                        Toast.makeText(context, "Income inserted", Toast.LENGTH_SHORT).show();
-                        amount.setText("");
-                        note.setText("");
-                    }else{
-                        Log.d("insertTransaction", "Income did not insert, deleting transaction: " + transactionId);
+                        long incomeId = incomeQueryBuilder.insert(new Income(
+                                Double.parseDouble(amount.getText().toString()),
+                                note.getText().toString(),
+                                (int) transactionId
+                        ));
+                        if (incomeId != -1){
+                            Log.d("insertTransaction", "Income inserted: " + incomeId);
+                            Toast.makeText(context, "Income inserted", Toast.LENGTH_SHORT).show();
+                            amount.setText("");
+                            note.setText("");
+                        }else{
+                            Log.d("insertTransaction", "Income did not insert, deleting transaction: " + transactionId);
+                            amount.setError("Field should be in correct format.");
+                            throw new Exception("Income not inserted");
+                        }
+                    }catch(Exception e){
                         transactionBuilder.delete()
                                 .one((int) transactionId)
                                 .execDelete();
                     }
+
                 }
 
             }else{
-                Toast.makeText(context, "Field is required!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Field is incorrect or is in incorrect format!", Toast.LENGTH_SHORT).show();
             }
         });
     }

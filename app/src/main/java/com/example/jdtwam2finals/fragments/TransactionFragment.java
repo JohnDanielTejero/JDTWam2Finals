@@ -1,10 +1,9 @@
 package com.example.jdtwam2finals.fragments;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -24,7 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.jdtwam2finals.Adapters.TransactionAdapter;
-import com.example.jdtwam2finals.R;
+import com.example.jdtwam2finals.DatePickerActivity;
 import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.dao.ExpenseTable;
 import com.example.jdtwam2finals.dao.IncomeTable;
@@ -36,15 +35,18 @@ import com.example.jdtwam2finals.dto.Income;
 import com.example.jdtwam2finals.dto.Transaction;
 import com.example.jdtwam2finals.utils.ExportDataToCsv;
 import com.example.jdtwam2finals.utils.MonetaryFormat;
+import com.example.jdtwam2finals.utils.MonthSetter;
 import com.example.jdtwam2finals.utils.QueryBuilder;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,6 +71,11 @@ public class TransactionFragment extends Fragment {
     private List<Transaction> transactionsList;
     private Button export;
     private LinearLayout incomeDisplay, expenseDisplay;
+    private LocalDate selectedDate;
+    private static final int ITEMS_PER_PAGE = 5;
+    private Integer offset_to_apply = null;
+    private Integer pagination = 0;
+    private boolean isLastPage = false;
     private static final String[] MONTHS = {
             "January",
             "February",
@@ -83,6 +90,7 @@ public class TransactionFragment extends Fragment {
             "November",
             "December"
     };
+    private boolean flagComputeStatic = false;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -138,7 +146,6 @@ public class TransactionFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         Calendar calendar = Calendar.getInstance();
         currentMonth = calendar.get(Calendar.MONTH);
-
         dbCon = DbCon.getInstance(context);
         sp = context.getSharedPreferences("login", Context.MODE_PRIVATE);
         next = b.next;
@@ -150,14 +157,21 @@ public class TransactionFragment extends Fragment {
         export = b.exportButton;
         incomeDisplay = b.incomeDisplay;
         expenseDisplay = b.expenseDisplay;
-
+        selectedDate = LocalDate.now();
+        offset_to_apply = 0;
         setMonthSpinner();
 
         prev.setOnClickListener(v -> {
             if (currentMonth == 0) {
                 return;
             }
+            selectedDate = selectedDate.minusMonths(1);
             --currentMonth;
+            offset_to_apply = 0;
+            flagComputeStatic = false;
+            transactionsList = null;
+            tAdapter = null;
+            pagination = 0;
             setMonthSpinner();
         });
 
@@ -165,7 +179,13 @@ public class TransactionFragment extends Fragment {
             if(currentMonth == MONTHS.length - 1){
                 return;
             }
+            tAdapter = null;
+            selectedDate = selectedDate.plusMonths(1);
             ++currentMonth;
+            flagComputeStatic = false;
+            offset_to_apply = 0;
+            pagination = 0;
+            transactionsList = null;
             setMonthSpinner();
         });
 
@@ -180,74 +200,136 @@ public class TransactionFragment extends Fragment {
                 }
             }
         });
+
+        monthSpinner.setOnClickListener(v -> {
+            if (selectedDate == null) {
+                return;
+            }
+            Intent intent = new Intent(getActivity(), DatePickerActivity.class);
+            intent.putExtra("month_display", selectedDate.toString());
+            intent.putExtra("month_spinner", MONTHS[currentMonth]);
+            startActivity(intent);
+        });
+
+        b.transactionNestedView.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            int maxScrollY = b.transactionNestedView.getChildAt(0).getMeasuredHeight() - b.transactionNestedView.getMeasuredHeight();
+            int scrollY = b.transactionNestedView.getScrollY();
+            int threshold = 10;
+
+            if (transactionsList != null && transactionsList.size() >= ITEMS_PER_PAGE) {
+                if (maxScrollY - scrollY <= threshold) {
+
+                    if (!isLastPage) {
+                        setMonthSpinner();
+                    }
+                }
+            }
+        });
     }
 
-    private void setMonthSpinner(){
+    private void setMonthSpinner() {
         monthSpinner.setText(MONTHS[currentMonth]);
-
+        offset_to_apply = pagination * ITEMS_PER_PAGE;
+        pagination++;
+        isLastPage = false;
         Double getIncome = null;
         Double getExpense = null;
         ExecutorService e = Executors.newCachedThreadPool();
 
-        Future<Double> incomeAmount = e.submit(() -> {
-            int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
-            Cursor cursor = queryBuilder
-                    .find()
-                    .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .where(TransactionTable.COLUMN_TYPE, "=",  "Income")
-                    .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                    .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
-                    .sum(IncomeTable.COLUMN_AMOUNT)
-                    .exec();
-            if (cursor != null && cursor.getCount() > 0){
-                cursor.moveToFirst();
-                Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
-                return sum;
-            }
-            return null;
-        });
+        if (!flagComputeStatic){
+            List<Callable<Double>> tasks = new ArrayList<>();
+            tasks.add(() -> e.submit(() -> {
+                int userId = sp.getInt("user", -1);
+                QueryBuilder<Transaction> queryBuilder = new TransactionTable();
+                queryBuilder.database(dbCon.getReadableDatabase());
+                Cursor cursor = queryBuilder
+                        .find()
+                        .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
+                        .where(TransactionTable.COLUMN_TYPE, "=",  "Income")
+                        .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
+                        .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                        .sum(IncomeTable.COLUMN_AMOUNT)
+                        .exec();
+                if (cursor != null && cursor.getCount() > 0){
+                    cursor.moveToFirst();
+                    double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                    cursor.close();
+                    return sum;
+                }
+                return null;
+            }).get());
+            tasks.add(() -> e.submit(() -> {
+                int userId = sp.getInt("user", -1);
+                QueryBuilder<Transaction> queryBuilder = new TransactionTable();
+                queryBuilder.database(dbCon.getReadableDatabase());
+                Cursor cursor = queryBuilder
+                        .find()
+                        .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
+                        .where(TransactionTable.COLUMN_TYPE, "=",  "Expense")
+                        .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
+                        .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                        .sum(ExpenseTable.COLUMN_AMOUNT)
+                        .exec();
+                if (cursor != null && cursor.getCount() > 0){
+                    cursor.moveToFirst();
+                    double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                    cursor.close();
+                    return sum;
+                }
+                return null;
+            }).get());
 
-        Future<Double> expenseAmount = e.submit(() -> {
-            int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
-            Cursor cursor = queryBuilder
-                    .find()
-                    .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .where(TransactionTable.COLUMN_TYPE, "=",  "Expense")
-                    .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                    .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
-                    .sum(ExpenseTable.COLUMN_AMOUNT)
-                    .exec();
-            if (cursor != null && cursor.getCount() > 0){
-                cursor.moveToFirst();
-                Double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
-                return sum;
+            try {
+                List<Future<Double>> results = e.invokeAll(tasks);
+                getIncome = results.get(0).get();
+                getExpense = results.get(1).get();
+            } catch (ExecutionException ex) {
+                throw new RuntimeException(ex);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
             }
-            return null;
-        });
+            String moneyPrefix = "Php ";
+            expenses.setText(moneyPrefix.concat((getExpense != null ?
+                    MonetaryFormat.formatCurrencyWithTrim(getExpense)
+                    : "0")));
+
+            income.setText(moneyPrefix.concat(getIncome != null ?
+                    MonetaryFormat.formatCurrencyWithTrim(getIncome)
+                    : MonetaryFormat.formatCurrencyWithTrim(0)));
+
+            Double finalGetExpense = getExpense;
+            expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense for " + MONTHS[currentMonth] + ": " + finalGetExpense));
+
+            Double finalGetIncome = getIncome;
+            incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
+            flagComputeStatic = true;
+        }
 
         Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
             List<Transaction> currentTransaction = new ArrayList<>();
-            QueryBuilder<Transaction> query = new TransactionTable(dbCon.getReadableDatabase());
+            QueryBuilder<Transaction> query = new TransactionTable();
+            query.database(dbCon.getReadableDatabase());
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                     .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                    .orderBy(0)
+                    .orderByDate(false, TransactionTable.COLUMN_DATE)
+                    .limitBy(ITEMS_PER_PAGE)
+                    .offset(offset_to_apply)
                     .exec();
+
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     try {
-                        @SuppressLint("Range") long id = cursor.getLong(cursor.getColumnIndex(TransactionTable.COLUMN_TRANSACTION_ID));
-                        @SuppressLint("Range") String month = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_MONTH));
-                        @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_TYPE));
-                        Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-                                .parse(cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE)));
+                        long id = cursor.getLong(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_TRANSACTION_ID));
+                        String month = cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_MONTH));
+                        String type = cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_TYPE));
+                        Date date = MonthSetter.parseDate((cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE))));
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
-                            QueryBuilder<Expense> exp = new ExpenseTable(dbCon.getReadableDatabase());
+                            QueryBuilder<Expense> exp =new ExpenseTable();
+                            exp.database(dbCon.getReadableDatabase());
                             Cursor expCur = exp.find()
                                     .where(ExpenseTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();
@@ -265,7 +347,8 @@ public class TransactionFragment extends Fragment {
                             }
 
                         } else if ("Income".equals(t.getType())) {
-                            QueryBuilder<Income> inc = new IncomeTable(dbCon.getReadableDatabase());
+                            QueryBuilder<Income> inc = new IncomeTable();
+                            inc.database(dbCon.getReadableDatabase());
                             Cursor incCur = inc.find()
                                     .where(IncomeTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();
@@ -284,8 +367,6 @@ public class TransactionFragment extends Fragment {
                             throw new RuntimeException("This type does not exist");
                         }
                         currentTransaction.add(t);
-                    } catch (ParseException ex) {
-                        throw new RuntimeException(ex);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -297,51 +378,43 @@ public class TransactionFragment extends Fragment {
         });
 
         try {
-            getIncome = incomeAmount.get();
-            getExpense = expenseAmount.get();
-            transactionsList = (List<Transaction>) transactions.get();
-
+            if (transactionsList == null) {
+               transactionsList = (List<Transaction>) transactions.get();
+            }else{
+                if (transactions.get().size() > 0){
+                    transactionsList.addAll((List<Transaction>) transactions.get());
+                }else{
+                    isLastPage = true;
+                }
+            }
             e.shutdown();
-        } catch (ExecutionException ex) {
-            throw new RuntimeException(ex);
-        } catch (InterruptedException ex) {
+        } catch (ExecutionException | InterruptedException ex) {
             throw new RuntimeException(ex);
         }
 
-        String moneyPrefix = "Php ";
-        expenses.setText(moneyPrefix.concat((getExpense != null ?
-                MonetaryFormat.formatCurrencyWithTrim(getExpense)
-                : "0")));
+        if (tAdapter == null){
+            tAdapter = new TransactionAdapter(context, transactionsList, false, () -> {
+                setMonthSpinner();
+                flagComputeStatic = false;
+            });
+            transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
+            transactionsDisplay.setAdapter(tAdapter);
+        } else{
+            tAdapter.notifyDataSetChanged();
+        }
 
-        income.setText(moneyPrefix.concat(getIncome != null ?
-                MonetaryFormat.formatCurrencyWithTrim(getIncome)
-                : MonetaryFormat.formatCurrencyWithTrim(0)));
-
-        Double finalGetExpense = getExpense;
-        expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense for " + MONTHS[currentMonth] + ": " + finalGetExpense));
-
-        Double finalGetIncome = getIncome;
-        incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
-
-        tAdapter = new TransactionAdapter(context, transactionsList, false, () -> setMonthSpinner());
-        transactionsDisplay.setLayoutManager(new LinearLayoutManager(context) {
-            @Override
-            public boolean canScrollVertically() {
-                return false;
-            }
-        });
-
-        transactionsDisplay.setAdapter(tAdapter);
     }
     public void deleteTransaction(Transaction t){
         if ("Expense".equals(t.getType())) {
-            QueryBuilder<Expense> exp = new ExpenseTable(dbCon.getWritableDatabase());
+            QueryBuilder<Expense> exp =new ExpenseTable();
+            exp.database(dbCon.getWritableDatabase());
             exp.delete()
                     .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
                     .execDelete();
         } else if ("Income".equals(t.getType())) {
-            QueryBuilder<Income> exp = new IncomeTable(dbCon.getWritableDatabase());
-            exp.delete()
+            QueryBuilder<Income> inc = new IncomeTable();
+            inc.database(dbCon.getWritableDatabase());
+            inc.delete()
                     .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))
                     .execDelete();
 
@@ -349,7 +422,8 @@ public class TransactionFragment extends Fragment {
             Log.d("ViewHolder", "Unrecognized Type");
         }
 
-        QueryBuilder<Transaction> transactQuery = new TransactionTable(dbCon.getWritableDatabase());
+        QueryBuilder<Transaction> transactQuery =new TransactionTable();
+        transactQuery.database(dbCon.getWritableDatabase());
         transactQuery
                 .delete()
                 .one(t.getTransactionId())
@@ -359,5 +433,4 @@ public class TransactionFragment extends Fragment {
     public void displayClicked(String message){
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
-
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -11,25 +12,25 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_custom_logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.JDTWam2Finals"
         android:hardwareAccelerated="true"
+        android:theme="@style/Theme.JDTWam2Finals"
         tools:targetApi="31">
-
         <activity
-            android:screenOrientation="sensorPortrait"
-            android:name=".UnauthActivity"
-            android:noHistory="true"
-            android:exported="false"/>
-        <activity
-            android:screenOrientation="sensorPortrait"
-            android:noHistory="true"
-            android:name=".AuthActivity"
+            android:name=".DatePickerActivity"
             android:exported="false" />
         <activity
-            android:screenOrientation="sensorPortrait"
+            android:name=".UnauthActivity"
+            android:exported="false"
+            android:screenOrientation="sensorPortrait" />
+        <activity
+            android:name=".AuthActivity"
+            android:exported="false"
+            android:screenOrientation="sensorPortrait" />
+        <activity
             android:name=".MainActivity"
+            android:exported="true"
             android:noHistory="true"
-            android:exported="true">
+            android:screenOrientation="sensorPortrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

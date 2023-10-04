@@ -22,15 +22,15 @@ public class MonetaryFormat {
         } else if (balance < 1000000) {
             // If the balance is in thousands, format it as Xk (e.g., 1.5k).
             double thousands = balance / 1000;
-            formattedValue = String.format("%.1fk", thousands);
+            formattedValue = String.format("%.0fk", thousands);
         } else if (balance < 1000000000) {
             // If the balance is in millions, format it as Xm (e.g., 1.5m).
             double millions = balance / 1000000;
-            formattedValue = String.format("%.1fm", millions);
+            formattedValue = String.format("%.0fm", millions);
         } else {
             // If the balance is in billions or more, format it as Xb (e.g., 1.5b).
             double billions = balance / 1000000000;
-            formattedValue = String.format("%.1fb", billions);
+            formattedValue = String.format("%.0fb", billions);
         }
 
         // Remove trailing decimal point and zeros if they are all zeros

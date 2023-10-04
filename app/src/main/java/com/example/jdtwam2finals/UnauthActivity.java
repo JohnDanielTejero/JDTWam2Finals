@@ -8,12 +8,8 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 
 import com.example.jdtwam2finals.databinding.ActivityUnauthBinding;
-import com.example.jdtwam2finals.fragments.DashboardFragment;
-import com.example.jdtwam2finals.fragments.ExpenseFragment;
-import com.example.jdtwam2finals.fragments.IncomeFragment;
 import com.example.jdtwam2finals.fragments.LoginFragment;
 import com.example.jdtwam2finals.fragments.RegisterFragment;
-import com.example.jdtwam2finals.fragments.TransactionFragment;
 
 public class UnauthActivity extends AppCompatActivity {
 
