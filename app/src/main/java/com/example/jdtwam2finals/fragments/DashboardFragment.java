@@ -178,8 +178,8 @@ public class DashboardFragment extends Fragment {
 
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    //.orderBy(0)
-                    .orderByDate(false, TransactionTable.COLUMN_DATE)
+                    //.orderByDate(false, TransactionTable.COLUMN_DATE)
+                    .orderBy(0)
                     .limitBy(5)
                     .exec();
             if (cursor != null) {
@@ -188,8 +188,6 @@ public class DashboardFragment extends Fragment {
                         @SuppressLint("Range") long id = cursor.getLong(cursor.getColumnIndex(TransactionTable.COLUMN_TRANSACTION_ID));
                         @SuppressLint("Range") String month = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_MONTH));
                         @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex(TransactionTable.COLUMN_TYPE));
-                        //Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-                        //Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
                         Date date = MonthSetter.parseDate((cursor.getString(cursor.getColumnIndexOrThrow(TransactionTable.COLUMN_DATE))));
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
@@ -259,6 +257,7 @@ public class DashboardFragment extends Fragment {
                 Double finalGetIncome = getIncome;
                 incomeDisplay.setOnClickListener(v -> displayClicked("Total Income: " + finalGetIncome));
 
+                b.dashboardLoading.setVisibility(View.GONE);
                 tAdapter = new TransactionAdapter(context, t, true, null);
                 b.recentTransactions.setLayoutManager(new LinearLayoutManager(context));
                 b.recentTransactions.setAdapter(tAdapter);

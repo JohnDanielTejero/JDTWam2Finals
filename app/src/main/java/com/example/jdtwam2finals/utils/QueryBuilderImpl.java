@@ -24,11 +24,13 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     protected String selectedTable;
     protected String operation;
     protected Integer limitBy;
+    protected String date_comparator;
     private Boolean isCount = false;
     private String sumOfColumn = null;
     private static QueryBuilder instance = null;
     private String orderBy = "1";
     private boolean orderByAsc = false;
+    private String column_date_selection;
     private Integer offset = null;
     private static final String WHERE_CLAUSE = " WHERE ";
     private static final String SELECT_ALL_COLUMN = " * ";
@@ -37,7 +39,6 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     private static final String COUNT_CLAUSE = " COUNT";
     private static final String SUM_CLAUSE = " SUM";
     private static final String OFFSET_CLAUSE =  " OFFSET ";
-
 
     public QueryBuilderImpl() {
 
@@ -107,6 +108,13 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
     }
 
     @Override
+    public QueryBuilder whereDate(String dateAsString, String column_date_selection) {
+        this.date_comparator = dateAsString;
+        this.column_date_selection = column_date_selection;
+        return this;
+    }
+
+    @Override
     public QueryBuilder<T> count() {
         this.isCount = true;
         return this;
@@ -144,7 +152,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 String[] conditionArray = formatCondition[1].split(",");
                 values.addAll(Arrays.asList(conditionArray));
                 query.append(formatCondition[0].toString());
-                Log.d("sqlQuery", query.toString());
+                //Log.d("sqlQuery", query.toString());
             }
 
 
@@ -191,7 +199,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
 
     @Override
     public Cursor exec() {
-        Log.d("sqlQuery", "in exec");
+        Log.d("sqlQuery", "in exec Select");
         try{
             StringBuilder query = new StringBuilder(this.operation);
             ArrayList<String> condition_identifier = null;
@@ -206,12 +214,12 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
             if (sumOfColumn != null){
                 query = new StringBuilder(this.operation + SUM_CLAUSE + "(" + sumOfColumn + ")");
                 query.append(FROM_CLAUSE + this.selectedTable);
-                Log.d("sqlQuery", query.toString());
+                //Log.d("sqlQuery", query.toString());
             }
             if(this.table_joins.size() != 0){
                 String joins = formatTableJoins();
                 query.append(joins);
-                Log.d("sqlQuery", query.toString());
+                //Log.d("sqlQuery", query.toString());
             }
 
             if (this.conditions.size() != 0){
@@ -219,19 +227,35 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 String[] conditionArray = formatCondition[1].split(",");
                 condition_identifier = new ArrayList<>(Arrays.asList(conditionArray));
                 query.append(formatCondition[0].toString());
-                Log.d("sqlQuery", query.toString());
+                //Log.d("sqlQuery", query.toString());
+            }
+
+            if (this.date_comparator != null) {
+                StringBuilder date_selector = new StringBuilder();
+                if (this.conditions.size() == 0){
+                    date_selector.append(WHERE_CLAUSE);
+                }else{
+                    date_selector.append(" AND ");
+                }
+                date_selector.append("strftime('%Y-%m-%d', " + column_date_selection + ") = ?");
+                //date_selector.append("strftime('%Y-%m-%d', datetime(" + column_date_selection + ",'unixepoch')) = ? ");
+                //date_selector.append(column_date_selection + " =? ");
+                //date_selector.append("CAST(strftime('%Y-%m-%d', " + column_date_selection + "/1000, unixepoch)) AS TEXT) = ? ");
+                query.append(date_selector);
+
+                Log.d("sqlQuery", date_comparator);
+                condition_identifier.add(date_comparator);
             }
 
             if(orderByDateAsc != null){
                 query.append(" ORDER BY ");
-                query.append("strftime('%Y-%m-%d', datetime(" + column_date + ", 'unixepoch')) ");
+                query.append("strftime('%Y-%m-%d', datetime(strftime('%s'," + column_date + "), 'unixepoch')) ");
                 query.append((orderByDateAsc ? " ASC " : " DESC "));
                 query.append(orderByAsc ? ", 1 ASC " : ", 1 DESC ");
             }else{
                 query.append(" ORDER BY ");
                 query.append(orderBy);
                 query.append((orderByAsc ? " ASC " : " DESC "));
-
             }
 
             if (limitBy != null) {
@@ -240,9 +264,9 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
 
             if (offset != null) {
                 query.append(OFFSET_CLAUSE + offset);
-                Log.d("sqlQuery", offset.toString());
+                //Log.d("sqlQuery", offset.toString());
             }
-
+            Log.d("sqlQuery", condition_identifier.toString());
             Log.d("sqlQuery", query.toString());
             Cursor cursor = this.db.rawQuery(
                     query.toString(),
@@ -266,7 +290,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
      */
     private String formatTableJoins(){
         if(this.table_joins.size() != 0){
-            Log.d("sqlQuery", "in table joins");
+            //Log.d("sqlQuery", "in table joins");
 
             StringBuilder joins = new StringBuilder();
 
@@ -279,7 +303,7 @@ public abstract class QueryBuilderImpl<T> implements QueryBuilder<T> {
                 joins.append(" ON ");
                 joins.append(foreignKey + " = " + referenceKey);
             }
-            Log.d("sqlQuery", joins.toString());
+            //Log.d("sqlQuery", joins.toString());
             return joins.toString();
         }
         return null;

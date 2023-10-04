@@ -90,6 +90,7 @@ public class TransactionFragment extends Fragment {
             "November",
             "December"
     };
+    private boolean flagComputeStatic = false;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -167,7 +168,9 @@ public class TransactionFragment extends Fragment {
             selectedDate = selectedDate.minusMonths(1);
             --currentMonth;
             offset_to_apply = 0;
+            flagComputeStatic = false;
             transactionsList = null;
+            tAdapter = null;
             pagination = 0;
             setMonthSpinner();
         });
@@ -176,8 +179,10 @@ public class TransactionFragment extends Fragment {
             if(currentMonth == MONTHS.length - 1){
                 return;
             }
+            tAdapter = null;
             selectedDate = selectedDate.plusMonths(1);
             ++currentMonth;
+            flagComputeStatic = false;
             offset_to_apply = 0;
             pagination = 0;
             transactionsList = null;
@@ -209,7 +214,7 @@ public class TransactionFragment extends Fragment {
         b.transactionNestedView.getViewTreeObserver().addOnScrollChangedListener(() -> {
             int maxScrollY = b.transactionNestedView.getChildAt(0).getMeasuredHeight() - b.transactionNestedView.getMeasuredHeight();
             int scrollY = b.transactionNestedView.getScrollY();
-            int threshold = 100;
+            int threshold = 10;
 
             if (transactionsList != null && transactionsList.size() >= ITEMS_PER_PAGE) {
                 if (maxScrollY - scrollY <= threshold) {
@@ -231,48 +236,74 @@ public class TransactionFragment extends Fragment {
         Double getExpense = null;
         ExecutorService e = Executors.newCachedThreadPool();
 
-        List<Callable<Double>> tasks = new ArrayList<>();
-        tasks.add(() -> e.submit(() -> {
-            int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable();
-            queryBuilder.database(dbCon.getReadableDatabase());
-            Cursor cursor = queryBuilder
-                    .find()
-                    .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .where(TransactionTable.COLUMN_TYPE, "=",  "Income")
-                    .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                    .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
-                    .sum(IncomeTable.COLUMN_AMOUNT)
-                    .exec();
-            if (cursor != null && cursor.getCount() > 0){
-                cursor.moveToFirst();
-                double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
-                cursor.close();
-                return sum;
-            }
-            return null;
-        }).get());
-        tasks.add(() -> e.submit(() -> {
-            int userId = sp.getInt("user", -1);
-            QueryBuilder<Transaction> queryBuilder = new TransactionTable();
-            queryBuilder.database(dbCon.getReadableDatabase());
-            Cursor cursor = queryBuilder
-                    .find()
-                    .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
-                    .where(TransactionTable.COLUMN_TYPE, "=",  "Expense")
-                    .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                    .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
-                    .sum(ExpenseTable.COLUMN_AMOUNT)
-                    .exec();
-            if (cursor != null && cursor.getCount() > 0){
-                cursor.moveToFirst();
-                double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
-                cursor.close();
-                return sum;
-            }
-            return null;
-        }).get());
+        if (!flagComputeStatic){
+            List<Callable<Double>> tasks = new ArrayList<>();
+            tasks.add(() -> e.submit(() -> {
+                int userId = sp.getInt("user", -1);
+                QueryBuilder<Transaction> queryBuilder = new TransactionTable();
+                queryBuilder.database(dbCon.getReadableDatabase());
+                Cursor cursor = queryBuilder
+                        .find()
+                        .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
+                        .where(TransactionTable.COLUMN_TYPE, "=",  "Income")
+                        .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
+                        .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                        .sum(IncomeTable.COLUMN_AMOUNT)
+                        .exec();
+                if (cursor != null && cursor.getCount() > 0){
+                    cursor.moveToFirst();
+                    double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                    cursor.close();
+                    return sum;
+                }
+                return null;
+            }).get());
+            tasks.add(() -> e.submit(() -> {
+                int userId = sp.getInt("user", -1);
+                QueryBuilder<Transaction> queryBuilder = new TransactionTable();
+                queryBuilder.database(dbCon.getReadableDatabase());
+                Cursor cursor = queryBuilder
+                        .find()
+                        .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
+                        .where(TransactionTable.COLUMN_TYPE, "=",  "Expense")
+                        .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
+                        .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                        .sum(ExpenseTable.COLUMN_AMOUNT)
+                        .exec();
+                if (cursor != null && cursor.getCount() > 0){
+                    cursor.moveToFirst();
+                    double sum = (double) cursor.getLong(cursor.getColumnIndexOrThrow("SUM(amount)"));
+                    cursor.close();
+                    return sum;
+                }
+                return null;
+            }).get());
 
+            try {
+                List<Future<Double>> results = e.invokeAll(tasks);
+                getIncome = results.get(0).get();
+                getExpense = results.get(1).get();
+            } catch (ExecutionException ex) {
+                throw new RuntimeException(ex);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            String moneyPrefix = "Php ";
+            expenses.setText(moneyPrefix.concat((getExpense != null ?
+                    MonetaryFormat.formatCurrencyWithTrim(getExpense)
+                    : "0")));
+
+            income.setText(moneyPrefix.concat(getIncome != null ?
+                    MonetaryFormat.formatCurrencyWithTrim(getIncome)
+                    : MonetaryFormat.formatCurrencyWithTrim(0)));
+
+            Double finalGetExpense = getExpense;
+            expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense for " + MONTHS[currentMonth] + ": " + finalGetExpense));
+
+            Double finalGetIncome = getIncome;
+            incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
+            flagComputeStatic = true;
+        }
 
         Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
@@ -347,9 +378,6 @@ public class TransactionFragment extends Fragment {
         });
 
         try {
-            List<Future<Double>> results = e.invokeAll(tasks);
-            getIncome = results.get(0).get();
-            getExpense = results.get(1).get();
             if (transactionsList == null) {
                transactionsList = (List<Transaction>) transactions.get();
             }else{
@@ -360,30 +388,21 @@ public class TransactionFragment extends Fragment {
                 }
             }
             e.shutdown();
-        } catch (ExecutionException ex) {
-            throw new RuntimeException(ex);
-        } catch (InterruptedException ex) {
+        } catch (ExecutionException | InterruptedException ex) {
             throw new RuntimeException(ex);
         }
 
-        String moneyPrefix = "Php ";
-        expenses.setText(moneyPrefix.concat((getExpense != null ?
-                MonetaryFormat.formatCurrencyWithTrim(getExpense)
-                : "0")));
+        if (tAdapter == null){
+            tAdapter = new TransactionAdapter(context, transactionsList, false, () -> {
+                setMonthSpinner();
+                flagComputeStatic = false;
+            });
+            transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
+            transactionsDisplay.setAdapter(tAdapter);
+        } else{
+            tAdapter.notifyDataSetChanged();
+        }
 
-        income.setText(moneyPrefix.concat(getIncome != null ?
-                MonetaryFormat.formatCurrencyWithTrim(getIncome)
-                : MonetaryFormat.formatCurrencyWithTrim(0)));
-
-        Double finalGetExpense = getExpense;
-        expenseDisplay.setOnClickListener(v -> displayClicked("Total Expense for " + MONTHS[currentMonth] + ": " + finalGetExpense));
-
-        Double finalGetIncome = getIncome;
-        incomeDisplay.setOnClickListener(v -> displayClicked("Total Income for " + MONTHS[currentMonth] + ": "+ finalGetIncome));
-
-        tAdapter = new TransactionAdapter(context, transactionsList, false, this::setMonthSpinner);
-        transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
-        transactionsDisplay.setAdapter(tAdapter);
     }
     public void deleteTransaction(Transaction t){
         if ("Expense".equals(t.getType())) {
@@ -414,5 +433,4 @@ public class TransactionFragment extends Fragment {
     public void displayClicked(String message){
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
-
 }

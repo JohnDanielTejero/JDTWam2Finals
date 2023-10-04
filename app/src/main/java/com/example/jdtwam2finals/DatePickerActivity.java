@@ -8,10 +8,13 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.example.jdtwam2finals.Adapters.CalendarAdapter;
+import com.example.jdtwam2finals.dao.DbCon;
 import com.example.jdtwam2finals.databinding.ActivityDatePickerBinding;
+import com.example.jdtwam2finals.databinding.TransactionPerDayDisplayBinding;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class DatePickerActivity extends AppCompatActivity {
@@ -20,26 +23,39 @@ public class DatePickerActivity extends AppCompatActivity {
     private RecyclerView calendarRecyclerView;
     private LocalDate selectedDate;
     private String selectedMonth;
+    private String selectedYear;
     private ArrayList<String> daysInMonth;
+    private DbCon dbCon;
+    private TransactionPerDayDisplayBinding tpdb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         b = ActivityDatePickerBinding.inflate(getLayoutInflater());
+        tpdb = TransactionPerDayDisplayBinding.inflate(getLayoutInflater());
         selectedDate = LocalDate.parse(getIntent().getStringExtra("month_display"));
         selectedMonth = getIntent().getStringExtra("month_spinner");
+
+        dbCon = DbCon.getInstance(getApplicationContext());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy");
+        selectedYear = selectedDate.format((formatter));
+
         calendarRecyclerView = b.dateDisplay;
         setContentView(b.getRoot());
         setMonthView();
-
     }
 
     private void setMonthView() {
         daysInMonth = daysInMonthArray(selectedDate);
         Log.d("MonthDebug",daysInMonth.toString());
         if (daysInMonth.size() > 0) {
-            CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth);
+            CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, selectedYear.concat("-".concat(selectedMonth)), dbCon, this, tpdb);
             b.monthTitle.setText(selectedMonth);
-            RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 7);
+            RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 7) {
+                @Override
+                public boolean canScrollVertically() {
+                    return false;
+                }
+            };
             calendarRecyclerView.setLayoutManager(layoutManager);
             calendarRecyclerView.setAdapter(calendarAdapter);
         }

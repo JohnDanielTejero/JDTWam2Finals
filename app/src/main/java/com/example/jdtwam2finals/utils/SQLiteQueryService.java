@@ -53,6 +53,13 @@ public interface SQLiteQueryService<T> {
     public QueryBuilder<T> where(String columnName, String condition, String identifier);
 
     /**
+     * sets up condition for where clause (only declare after all conditions are called...)
+     * @param dateAsString
+     * @param column_date_selection
+     * @return
+     */
+    public QueryBuilder<T> whereDate(String dateAsString, String column_date_selection);
+    /**
      * Sets the order of table
      *
      * @param i - 1 for ASC, 0 for DESC

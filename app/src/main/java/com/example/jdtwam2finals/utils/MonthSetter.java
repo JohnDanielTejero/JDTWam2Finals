@@ -1,5 +1,7 @@
 package com.example.jdtwam2finals.utils;
 
+import android.util.Log;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -21,6 +23,7 @@ public class MonthSetter {
         return monthFormat.format(calendar.getTime());
     }
     public static Date parseDate(String dateString) {
+        Log.d("sqlQuery", dateString);
         SimpleDateFormat[] dateFormats = {
                 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US),
                 new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)

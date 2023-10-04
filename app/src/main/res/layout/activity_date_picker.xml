@@ -6,32 +6,32 @@
     android:background="?formBackground"
     android:layout_height="match_parent"
     tools:context=".DatePickerActivity">
+
     <TextView
         android:id="@+id/month_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="month"
         android:textAllCaps="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf=" parent"
+        android:textColor="?colorPrimary"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.01"
-        android:textColor="?colorPrimary"
-        android:textStyle="bold"
-        android:textSize="20sp"
-        app:layout_constraintHorizontal_bias="0.5"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.05" />
 
     <LinearLayout
         android:layout_marginHorizontal="10sp"
         android:id="@+id/days_layout"
-        app:layout_constraintTop_toBottomOf="@id/month_title"
-        app:layout_constraintBottom_toTopOf="@id/date_display"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.05"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintVertical_bias="0.1"
         android:orientation="horizontal">
         <TextView
             android:layout_width="0dp"
@@ -108,12 +108,12 @@
         android:layout_marginHorizontal="10sp"
         android:id="@+id/date_display"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintVertical_bias="0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/days_layout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
