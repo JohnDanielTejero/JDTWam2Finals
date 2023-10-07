@@ -159,6 +159,7 @@ public class TransactionFragment extends Fragment {
         expenseDisplay = b.expenseDisplay;
         selectedDate = LocalDate.now();
         offset_to_apply = 0;
+
         setMonthSpinner();
 
         prev.setOnClickListener(v -> {
@@ -394,8 +395,12 @@ public class TransactionFragment extends Fragment {
 
         if (tAdapter == null){
             tAdapter = new TransactionAdapter(context, transactionsList, false, () -> {
-                setMonthSpinner();
+                pagination = 0;
+                transactionsList = null;
+                isLastPage = false;
                 flagComputeStatic = false;
+                tAdapter = null;
+                setMonthSpinner();
             });
             transactionsDisplay.setLayoutManager(new LinearLayoutManager(context));
             transactionsDisplay.setAdapter(tAdapter);

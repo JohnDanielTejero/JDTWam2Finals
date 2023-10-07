@@ -79,13 +79,13 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         type.setText(transaction.getType());
         date.setText(new SimpleDateFormat("YY/MM/dd").format(transaction.getDate()));
         if ("Expense".equals(transaction.getType())) {
-            icon.setImageResource(R.drawable.price_price_tag_cost_svgrepo_com);
+            icon.setImageResource(R.drawable.expense_icon_alt);
             note.setText(transaction.getExpense().getNote());
             category.setText(transaction.getExpense().getCategory());
             amount.setText("Php " + MonetaryFormat.formatCurrencyWithTrim(transaction.getExpense().getAmount()));
 
         } else if ("Income".equals(transaction.getType())) {
-            icon.setImageResource(R.drawable.wallet_to_save_dollars_svgrepo_com);
+            icon.setImageResource(R.drawable.income_icon_alt);
             category.setVisibility(View.GONE);
             note.setText(transaction.getIncome().getNote());
             amount.setText("Php " + MonetaryFormat.formatCurrencyWithTrim(transaction.getIncome().getAmount()));
@@ -139,7 +139,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
             } else if (t.getType().equals("Expense")) {
                 updateB.updateAmount.setText(t.getExpense().getAmount().toString());
                 updateB.updateNote.setText(t.getExpense().getNote());
-                updateB.updateCategory.setText(t.getExpense().getNote());
+                updateB.updateCategory.setText(t.getExpense().getCategory());
                 updateB.categoryContainerUpdate.setVisibility(View.VISIBLE);
             }else{
                 Toast.makeText(context, "invalid type", Toast.LENGTH_SHORT).show();
@@ -173,7 +173,7 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
                     amountIsSubmittable = false;
                 }
 
-                if(t.getType() == "Income"){
+                if(t.getType().equals("Income")){
                     categoryIsSubmittable = true;
                 }
                 if (amountIsSubmittable && noteIsSubmittable && categoryIsSubmittable){
@@ -208,7 +208,6 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
                                 .setNewColVal(IncomeTable.COLUMN_NOTE, updateB.updateNote.getText().toString())
                                 .execUpdate();
 
-
                     }else if (t.getType().equals("Expense")){
                         QueryBuilder<Expense> q = new ExpenseTable();
                         q.database(db);
@@ -217,16 +216,16 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
                                 .setNewColVal(ExpenseTable.COLUMN_NOTE, updateB.updateNote.getText().toString())
                                 .setNewColVal(ExpenseTable.COLUMN_CATEGORY, updateB.updateCategory.getText().toString())
                                 .execUpdate();
-                        cb.execute();
-                        dialog.dismiss();
                     }else{
                         Toast.makeText(context, "Type does not exist!", Toast.LENGTH_SHORT).show();
                         return;
                     }
+                    cb.execute();
                 }else{
                     Toast.makeText(context, "Field is incorrect or is in incorrect format!", Toast.LENGTH_SHORT).show();
-                    return;
                 }
+
+                dialog.dismiss();
             });
 
             dialog.show();

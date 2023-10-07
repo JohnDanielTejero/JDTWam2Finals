@@ -14,8 +14,8 @@ android {
         applicationId = "com.example.jdtwam2finals"
         minSdk = 26
         targetSdk = 33
-        versionCode = 2;0;0
-        versionName = "2.0.0 dev version"
+        versionCode = 2;1;0
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

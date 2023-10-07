@@ -7,7 +7,7 @@
     android:background="@drawable/border_rigid_container"
     android:padding="15sp">
     <ImageButton
-        android:id="@+id/dismiss_dialog"
+        android:id="@+id/dismiss_dialog_transaction_day"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -25,15 +25,17 @@
         android:layout_height="wrap_content"
         android:text="transaction date"
         android:textAllCaps="true"
-        android:textColor="?colorPrimary"
+        android:textColor="?customTitleColor"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginBottom="10dp"
         app:layout_constraintVertical_bias="0.05" />
     <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="30sp"
         android:id="@+id/transaction_date_list"
         app:layout_constraintTop_toBottomOf="@id/transaction_date"
         android:layout_width="match_parent"
@@ -41,5 +43,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.03"
-        android:layout_height="0dp"/>
+        android:layout_height="wrap_content"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

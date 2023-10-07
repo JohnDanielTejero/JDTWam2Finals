@@ -15,9 +15,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.5"
         app:layout_constraintHorizontal_bias="0.02"
-        android:src="@drawable/wallet_to_save_dollars_svgrepo_com"
+        android:src="@drawable/income_icon_alt"
         android:layout_width="50dp"
-        android:layout_height="50dp"/>
+        android:layout_height="50dp"
+        app:tint="?colorOnPrimary" />
     <TextView
         android:id="@+id/holder_transaction_type"
         app:layout_constraintTop_toTopOf="parent"

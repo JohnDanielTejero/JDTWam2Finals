@@ -34,6 +34,9 @@ public class DatePickerActivity extends AppCompatActivity {
         tpdb = TransactionPerDayDisplayBinding.inflate(getLayoutInflater());
         selectedDate = LocalDate.parse(getIntent().getStringExtra("month_display"));
         selectedMonth = getIntent().getStringExtra("month_spinner");
+        b.dismissDatePicker.setOnClickListener(v -> {
+            finish();
+        });
 
         dbCon = DbCon.getInstance(getApplicationContext());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy");

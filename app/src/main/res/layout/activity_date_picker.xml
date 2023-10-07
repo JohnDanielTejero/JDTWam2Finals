@@ -7,13 +7,26 @@
     android:layout_height="match_parent"
     tools:context=".DatePickerActivity">
 
+    <ImageButton
+        android:id="@+id/dismiss_date_picker"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@drawable/transaparent_rect"
+        android:src="@drawable/ic_return"
+        android:layout_width="50sp"
+        android:layout_height="50sp"
+        app:layout_constraintHorizontal_bias="0.02"
+        app:layout_constraintVertical_bias="0.02"
+        app:tint="?customTitleColor" />
     <TextView
         android:id="@+id/month_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="month"
         android:textAllCaps="true"
-        android:textColor="?colorPrimary"
+        android:textColor="?customTitleColor"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

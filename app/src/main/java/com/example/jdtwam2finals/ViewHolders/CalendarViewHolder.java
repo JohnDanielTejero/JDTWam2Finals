@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
@@ -102,13 +103,26 @@ public class CalendarViewHolder extends RecyclerView.ViewHolder {
                 offset_to_apply = 0;
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                 dialog.setContentView(tbpd.getRoot());
+
                 setData();
+                tbpd.dismissDialogTransactionDay.setOnClickListener(view -> dialog.dismiss());
 
                 tAdapter = new TransactionAdapter(context, transactions, true, this::retrieveData);
                 tbpd.transactionDateList.setLayoutManager(new LinearLayoutManager(context));
                 tbpd.transactionDateList.setAdapter(tAdapter);
 
-                tbpd.transactionDate.setText(dateStringFormat);
+                SimpleDateFormat inputFormatter = new SimpleDateFormat("yyyy-MMMM-dd", Locale.US);
+
+                Date parseDate = null;
+                String formattedDate = "";
+                try {
+                    parseDate = inputFormatter.parse(dateStringFormat);
+                    formattedDate = new SimpleDateFormat("YYYY/MM/dd").format(parseDate);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+
+                tbpd.transactionDate.setText(formattedDate);
                 tbpd.transactionDateList.addOnScrollListener(new RecyclerView.OnScrollListener() {
                     @Override
                     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
