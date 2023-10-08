@@ -18,6 +18,6 @@
         <item name="customTitleColorAlt">?colorPrimary</item>
         <item name="customRippleColor">?colorSecondaryVariant</item>
         <item name="customBackdropGradient">?colorSecondary</item>
-
+        <item name="customButtonShade">?colorOnPrimary</item>
     </style>
 </resources>

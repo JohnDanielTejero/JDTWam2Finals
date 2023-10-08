@@ -213,7 +213,8 @@ public class TransactionFragment extends Fragment {
         });
 
         b.transactionNestedView.getViewTreeObserver().addOnScrollChangedListener(() -> {
-            int maxScrollY = b.transactionNestedView.getChildAt(0).getMeasuredHeight() - b.transactionNestedView.getMeasuredHeight();
+            int maxScrollY = b.transactionNestedView
+                    .getChildAt(0).getMeasuredHeight() - b.transactionNestedView.getMeasuredHeight();
             int scrollY = b.transactionNestedView.getScrollY();
             int threshold = 10;
 
@@ -248,7 +249,8 @@ public class TransactionFragment extends Fragment {
                         .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                         .where(TransactionTable.COLUMN_TYPE, "=",  "Income")
                         .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                        .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                        .relation(IncomeTable.TABLE_NAME, IncomeTable.COLUMN_TRANSACTION_ID,
+                                TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
                         .sum(IncomeTable.COLUMN_AMOUNT)
                         .exec();
                 if (cursor != null && cursor.getCount() > 0){
@@ -268,7 +270,8 @@ public class TransactionFragment extends Fragment {
                         .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                         .where(TransactionTable.COLUMN_TYPE, "=",  "Expense")
                         .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
-                        .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID, TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
+                        .relation(ExpenseTable.TABLE_NAME, ExpenseTable.COLUMN_TRANSACTION_ID,
+                                TransactionTable.TABLE_NAME, TransactionTable.COLUMN_TRANSACTION_ID)
                         .sum(ExpenseTable.COLUMN_AMOUNT)
                         .exec();
                 if (cursor != null && cursor.getCount() > 0){

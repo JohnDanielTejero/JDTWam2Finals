@@ -25,6 +25,7 @@ import com.example.jdtwam2finals.R;
 import com.example.jdtwam2finals.dao.ExpenseTable;
 import com.example.jdtwam2finals.dao.IncomeTable;
 import com.example.jdtwam2finals.dao.TransactionTable;
+import com.example.jdtwam2finals.databinding.DialogDeleteConfirmationBinding;
 import com.example.jdtwam2finals.databinding.TransactionViewHolderBinding;
 import com.example.jdtwam2finals.databinding.UpdateTransactionDialogBinding;
 import com.example.jdtwam2finals.dto.Expense;
@@ -54,9 +55,11 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
     private DatePickerDialog datePickerDialog;
     private Boolean dialogOpened = false;
     private Button dateButton;
+    private DialogDeleteConfirmationBinding delB;
 
     public TransactionViewHolder(@NonNull View itemView, TransactionViewHolderBinding binding,
-                                 UpdateTransactionDialogBinding ub, boolean isDashboard,
+                                 UpdateTransactionDialogBinding ub, DialogDeleteConfirmationBinding delB,
+                                 boolean isDashboard,
                                  Callback cb, Context context) {
         super(itemView);
         b = binding;
@@ -69,6 +72,8 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
         date = b.holderTransactionDate;
         amount = b.holderAmount;
         editButton = b.editButton;
+
+        this.delB = delB;
         this.updateB = ub;
         this.isDashboard = isDashboard;
         this.cb = cb;
@@ -238,33 +243,56 @@ public class TransactionViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void deleteTransaction(Transaction t, SQLiteDatabase db){
-        if ("Expense".equals(t.getType())) {
-          QueryBuilder<Expense> exp = new ExpenseTable();
-          exp.database(db);
-          exp.delete()
-                  .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
-                  .execDelete();
-        } else if ("Income".equals(t.getType())) {
-            QueryBuilder<Income> inc = new IncomeTable();
-            inc.database(db);
-            inc.delete()
-                    .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))
+        if (delB.getRoot().getParent() != null) {
+            ((ViewGroup) delB.getRoot().getParent()).removeView(delB.getRoot());
+        }
+
+        Dialog dialog = new Dialog(context);
+
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(delB.getRoot());
+        dialog.show();
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.getWindow().getAttributes().windowAnimations = R.style.pop_up_animation;
+        dialog.getWindow().setGravity(Gravity.BOTTOM);
+
+        delB.cancelDeleteButton.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        delB.deleteDialogButton.setOnClickListener(v -> {
+            if ("Expense".equals(t.getType())) {
+                QueryBuilder<Expense> exp = new ExpenseTable();
+                exp.database(db);
+                exp.delete()
+                        .where(ExpenseTable.COLUMN_EXPENSE_ID, "=", String.valueOf(t.getExpense().getExpenseId()))
+                        .execDelete();
+            } else if ("Income".equals(t.getType())) {
+                QueryBuilder<Income> inc = new IncomeTable();
+                inc.database(db);
+                inc.delete()
+                        .where(IncomeTable.COLUMN_INCOME_ID, "=", String.valueOf(t.getIncome().getIncomeId()))
+                        .execDelete();
+
+            }else{
+                Log.d("ViewHolder", "Unrecognized Type");
+            }
+
+            QueryBuilder<Transaction> transactQuery = new TransactionTable(db);
+            transactQuery
+                    .delete()
+                    .one(t.getTransactionId())
                     .execDelete();
 
-        }else{
-            Log.d("ViewHolder", "Unrecognized Type");
-        }
+            Toast.makeText(context, "Transaction successfully deleted!", Toast.LENGTH_SHORT).show();
+            if (cb != null){
+                cb.execute();
+            }
 
-        QueryBuilder<Transaction> transactQuery = new TransactionTable(db);
-        transactQuery
-                .delete()
-                .one(t.getTransactionId())
-                .execDelete();
+            dialog.dismiss();
+        });
 
-        Toast.makeText(context, "Transaction successfully deleted!", Toast.LENGTH_SHORT).show();
-        if (cb != null){
-            cb.execute();
-        }
     }
 
     private void initDatePicker() {

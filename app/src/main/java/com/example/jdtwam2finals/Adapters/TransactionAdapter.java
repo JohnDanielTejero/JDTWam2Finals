@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.jdtwam2finals.ViewHolders.TransactionViewHolder;
 import com.example.jdtwam2finals.dao.DbCon;
+import com.example.jdtwam2finals.databinding.DialogDeleteConfirmationBinding;
 import com.example.jdtwam2finals.databinding.TransactionViewHolderBinding;
 import com.example.jdtwam2finals.databinding.UpdateTransactionDialogBinding;
 import com.example.jdtwam2finals.dto.Transaction;
@@ -48,7 +49,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionViewHold
     public TransactionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         tViewBinding = TransactionViewHolderBinding.inflate(LayoutInflater.from(context), parent, false);
         updateB = UpdateTransactionDialogBinding.inflate(LayoutInflater.from(context), parent, false);
-        return new TransactionViewHolder(tViewBinding.getRoot(), tViewBinding, updateB, isDashboard, cb, context);
+        DialogDeleteConfirmationBinding delB = DialogDeleteConfirmationBinding.inflate(LayoutInflater.from(context), parent, false);
+        return new TransactionViewHolder(tViewBinding.getRoot(), tViewBinding, updateB, delB, isDashboard, cb, context);
     }
 
     @Override

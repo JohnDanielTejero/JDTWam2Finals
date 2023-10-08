@@ -39,7 +39,7 @@
         app:layout_constraintStart_toEndOf="@id/transaction_icon"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.3"
-        app:layout_constraintHorizontal_bias="0.10"
+        app:layout_constraintHorizontal_bias="0.04"
         android:textColor="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/holder_transaction_type"
@@ -51,7 +51,7 @@
         app:layout_constraintStart_toEndOf="@id/transaction_icon"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.6"
-        app:layout_constraintHorizontal_bias="0.10"
+        app:layout_constraintHorizontal_bias="0.04"
         android:textColor="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/holder_transaction_note"
@@ -93,7 +93,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/delete_button"
         app:layout_constraintVertical_bias="0.5"
-        app:layout_constraintHorizontal_bias="0.96"
+        app:layout_constraintHorizontal_bias="0.98"
         android:textColor="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/holder_amount"
@@ -101,7 +101,7 @@
     <ImageButton
         android:background="@drawable/delete_ripple"
         android:id="@+id/delete_button"
-        android:layout_width="40dp"
+            android:layout_width="40dp"
         android:layout_height="40dp"
         android:clickable="true"
         app:layout_constraintStart_toStartOf="parent"
@@ -111,7 +111,6 @@
         android:textColor="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/holder_amount"
-        android:backgroundTint="#FF4141"
         app:srcCompat="@android:drawable/ic_menu_delete"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

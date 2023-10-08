@@ -6,4 +6,5 @@
     <attr name = "customTitleColorAlt" format="string"/>
     <attr name = "customRippleColor" format="string"/>
     <attr name="customBackdropGradient" format="string"/>
+    <attr name="customButtonShade" format="string"/>
 </resources>
