@@ -173,8 +173,7 @@ public class DashboardFragment extends Fragment {
             }
 
             transactions = new ArrayList<>();
-            QueryBuilder<Transaction> query = new TransactionTable();
-            query.database(dbCon.getReadableDatabase());
+            QueryBuilder<Transaction> query = new TransactionTable(dbCon.getReadableDatabase());
 
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
@@ -192,8 +191,8 @@ public class DashboardFragment extends Fragment {
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
-                            QueryBuilder<Expense> exp = new ExpenseTable();
-                            exp.database(dbCon.getReadableDatabase());
+                            QueryBuilder<Expense> exp = new ExpenseTable(dbCon.getReadableDatabase());
+
                             Cursor expCur = exp.find()
                                     .where(ExpenseTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();
@@ -211,8 +210,8 @@ public class DashboardFragment extends Fragment {
                             }
 
                         } else if ("Income".equals(t.getType())) {
-                            QueryBuilder<Income> inc = new IncomeTable();
-                            inc.database(dbCon.getReadableDatabase());
+                            QueryBuilder<Income> inc = new IncomeTable(dbCon.getReadableDatabase());
+
                             Cursor incCur = inc.find()
                                     .where(IncomeTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();

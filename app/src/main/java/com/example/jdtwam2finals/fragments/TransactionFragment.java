@@ -242,8 +242,7 @@ public class TransactionFragment extends Fragment {
             List<Callable<Double>> tasks = new ArrayList<>();
             tasks.add(() -> e.submit(() -> {
                 int userId = sp.getInt("user", -1);
-                QueryBuilder<Transaction> queryBuilder = new TransactionTable();
-                queryBuilder.database(dbCon.getReadableDatabase());
+                QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
                 Cursor cursor = queryBuilder
                         .find()
                         .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
@@ -263,8 +262,7 @@ public class TransactionFragment extends Fragment {
             }).get());
             tasks.add(() -> e.submit(() -> {
                 int userId = sp.getInt("user", -1);
-                QueryBuilder<Transaction> queryBuilder = new TransactionTable();
-                queryBuilder.database(dbCon.getReadableDatabase());
+                QueryBuilder<Transaction> queryBuilder = new TransactionTable(dbCon.getReadableDatabase());
                 Cursor cursor = queryBuilder
                         .find()
                         .where(TransactionTable.COLUMN_USER_ID, "=", String.valueOf(userId))
@@ -312,8 +310,8 @@ public class TransactionFragment extends Fragment {
         Future<List<?>> transactions = e.submit(() -> {
             int userId = sp.getInt("user", -1);
             List<Transaction> currentTransaction = new ArrayList<>();
-            QueryBuilder<Transaction> query = new TransactionTable();
-            query.database(dbCon.getReadableDatabase());
+            QueryBuilder<Transaction> query = new TransactionTable(dbCon.getReadableDatabase());
+
             Cursor cursor = query.find()
                     .where(UserTable.COLUMN_USER_ID, "=", String.valueOf(userId))
                     .where(TransactionTable.COLUMN_MONTH, "=", MONTHS[currentMonth])
@@ -332,8 +330,8 @@ public class TransactionFragment extends Fragment {
                         Transaction t = new Transaction((int) id, type, date, month, userId);
 
                         if ("Expense".equals(t.getType())){
-                            QueryBuilder<Expense> exp =new ExpenseTable();
-                            exp.database(dbCon.getReadableDatabase());
+                            QueryBuilder<Expense> exp =new ExpenseTable(dbCon.getReadableDatabase());
+
                             Cursor expCur = exp.find()
                                     .where(ExpenseTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();
@@ -351,8 +349,8 @@ public class TransactionFragment extends Fragment {
                             }
 
                         } else if ("Income".equals(t.getType())) {
-                            QueryBuilder<Income> inc = new IncomeTable();
-                            inc.database(dbCon.getReadableDatabase());
+                            QueryBuilder<Income> inc = new IncomeTable(dbCon.getReadableDatabase());
+
                             Cursor incCur = inc.find()
                                     .where(IncomeTable.COLUMN_TRANSACTION_ID, "=", String.valueOf(t.getTransactionId()))
                                     .exec();

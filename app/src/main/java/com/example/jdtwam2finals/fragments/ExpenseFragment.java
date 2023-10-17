@@ -129,8 +129,8 @@ public class ExpenseFragment extends Fragment {
 
             if (amountIsSubmittable && noteIsSubmittable && categoryIsSubmittable){
 
-                QueryBuilder<Transaction> transactionBuilder = new TransactionTable();
-                transactionBuilder.database(dbCon.getWritableDatabase());
+                QueryBuilder<Transaction> transactionBuilder = new TransactionTable(dbCon.getWritableDatabase());
+
                 int userId = sp.getInt("user", -1);
                 long transactionId = transactionBuilder.insert(new Transaction("Expense", new Date(), MonthSetter.currentMonth(), userId));
                 if (transactionId != -1){
